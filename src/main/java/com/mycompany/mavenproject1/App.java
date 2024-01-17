@@ -22,7 +22,7 @@ public class App extends Application {
     //Variables para el tamaño de pantalla inicial.
     private static double height;
     private static double width;
-
+//Prueba github
     
     @Override
     public void start(Stage stage) throws IOException {
