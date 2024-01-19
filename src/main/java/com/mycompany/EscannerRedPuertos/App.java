@@ -1,4 +1,4 @@
-package com.mycompany.mavenproject1;
+package com.mycompany.EscannerRedPuertos;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -6,10 +6,10 @@ import javafx.scene.*;
 import javafx.stage.*;
 
 import java.io.IOException;
-import javafx.fxml.FXML;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+
 
 
 /**
@@ -25,7 +25,6 @@ public class App extends Application {
     
     @Override
     public void start(Stage stage) throws IOException {
-
         //Creamos objeto para capturar propiedades de la pantalla
         Screen screen = Screen.getPrimary();
         //Ajustamos a polígono tipo rectángulo
@@ -35,15 +34,17 @@ public class App extends Application {
         height = properties.getHeight()*0.7;
         width = properties.getWidth()*0.7;
         
-        System.out.println("Height: "+height);
-        System.out.println("Width: "+width);
+       // System.out.println("Height: "+height);
+       // System.out.println("Width: "+width);
         
         //Declaramos la scene con el archivo fxml y el tamaño inicial
-        scene = new Scene(loadFXML("primary"),width,height);
+        scene = new Scene(loadFXML("primary"));
         //Seteamos la scena en la pantalla
         stage.setScene(scene);
         //Mostramos la pantalla
         stage.show();
+
+        
     }
 
     static void setRoot(String fxml) throws IOException {
@@ -51,6 +52,7 @@ public class App extends Application {
     }
 
     private static Parent loadFXML(String fxml) throws IOException {
+        
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource(fxml + ".fxml"));
         return fxmlLoader.load();
     }
