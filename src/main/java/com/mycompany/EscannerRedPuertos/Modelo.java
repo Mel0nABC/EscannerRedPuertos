@@ -20,7 +20,7 @@ public class Modelo {
     private final int RANGOMAX = 255;
 
     //Constante para los hilos simultáneos a la hora de escanear ip's
-    private final int THREADS_SIZE_IPS = 50;
+    private final int THREADS_SIZE_IPS = 500;
     //Constante para los hilos simultáneos a la hora de escanear puertos
     private final int THREADS_SIZE_PUERTOS = 500;
 
@@ -55,15 +55,13 @@ public class Modelo {
     private int ipFi_3;
     private int ipFi_4;
 
-    //Variables del control de finalizar o continuar aplicación.
-    private boolean asignaIpFinal;
-
     //Objeto FileWriter para guardar el archivo de log mas adelaante.
     private FileWriter fichero;
 
 //############### INICIO ESCANER DE RED ###############
     public void escanearRed(String ipInicioString, String ipFinalString) {
-        System.out.println("iniciamos escaneo de red.");
+        System.out.println("IP INICIAL "+ipInicioString);
+        System.out.println("IP FINAL: "+ipFinalString);
         grupoDeThreads = new ThreadGroup("MiGrupoDeHilos");
         stopNuevoThread = true;
         listaThreadsPing = new ArrayList<>();
@@ -88,64 +86,86 @@ public class Modelo {
 
             if (arrayIpFinal.length == 4) {
 
-                generaArrayRangosIp();
+                boolean sonSoloNumeros = true;
 
-                if (ipIn_1 > 255 | ipIn_2 > 255 | ipIn_3 > 255 | ipIn_4 > 255 | ipFi_1 > 255 | ipFi_2 > 255 | ipFi_3 > 255 | ipFi_4 > 255) {
-                    PrimaryController.setAlarmaError("Algún rango de alguna ip es mayor a 255.");
-                } else {
+                for (int i = 0; i < arrayIpInicio.length; i++) {
+                    if (isNumeric(arrayIpInicio[i]) && arrayIpInicio[i].length() <= 3 && arrayIpInicio[i].length() >= 1) {
+                        System.out.println("ES NÚMERO: " + arrayIpInicio[i]);
+                    } else {
+                        System.out.println("NO NÚMERO: " + arrayIpInicio[i]);
+                        sonSoloNumeros = false;
+                    }
+                    if (isNumeric(arrayIpFinal[i]) && arrayIpFinal[i].length() <= 3 && arrayIpFinal[i].length() >= 1) {
+                        System.out.println("ES NÚMERO: " + arrayIpFinal[i]);
+                    } else {
+                        System.out.println("NO NÚMERO: " + arrayIpFinal[i]);
+                        sonSoloNumeros = false;
+                    }
+                }
 
-                    if (compruebaIps()) {
-                        PrimaryController.setEstatus("ESTATUS: Escaneando ....");
-                        boolean finalizaEscaneo = recorrerRangoIp();
+                if (sonSoloNumeros) {
 
-                        if (finalizaEscaneo) {
-                            try {
+                    generaArrayRangosIp();
 
-                                //Objeto calendar, para la obtención de horas, cara a guardar el log.
-                                Calendar calendario = Calendar.getInstance();
-                                int dia = calendario.get(Calendar.DAY_OF_MONTH);
-                                int mes = calendario.get(Calendar.MONTH);
-                                int year = calendario.get(Calendar.YEAR);
-                                int hora = calendario.get(Calendar.HOUR_OF_DAY);
-                                int minutos = calendario.get(Calendar.MINUTE);
-                                int segundos = calendario.get(Calendar.SECOND);
+                    if (ipIn_1 > RANGOMAX | ipIn_2 > RANGOMAX | ipIn_3 > RANGOMAX | ipIn_4 > RANGOMAX | ipFi_1 > RANGOMAX | ipFi_2 > RANGOMAX | ipFi_3 > 255 | ipFi_4 > RANGOMAX) {
+                        PrimaryController.setAlarmaError("Algún rango de alguna ip es mayor a "+RANGOMAX+".");
+                    } else {
 
-                                String fecha = hora + "h" + minutos + "m" + segundos + "s_" + dia + "-" + mes + "-" + year;
+                        if (compruebaIps()) {
+                            PrimaryController.setEstatus("ESTATUS: Escaneando ....");
+                            boolean finalizaEscaneo = recorrerRangoIp();
 
-                                //inicialización del objeto fichero, para indicar dónde guardaremos el log y su estructura de nombree
-                                fichero = new FileWriter(fecha + "_escaner.log");
-                                //Creamos el fichero .log.
-                                PrintWriter escribe = new PrintWriter(fichero);
-                                //Recorremos todas las ip's encontradas y las escribimos en el log con println.
-                                for (int i = 0; i < ipListaCompleta.size(); i++) {
-                                    ipListaCompleta.get(i).setId(i + 1);
-                                    escribe.println(ipListaCompleta.get(i).getIp());
-                                }
-                                PrimaryController.setItemsTable(ipListaCompleta);
-                                PrimaryController.setEstatus("ESTATUS: El escaneo finalizó con un resultado de " + ipListaCompleta.size() + " ip's detectadas.");
-
-                                if (ipListaCompleta.isEmpty()) {
-                                    PrimaryController.setAlarmaError("No se ha encontrado ninguna ip en ese rango.");
-                                }
-
-                            } catch (IOException ex) {
-
-                            } finally {
+                            if (finalizaEscaneo) {
                                 try {
-                                    if (fichero != null) {
-                                        fichero.close();
+
+                                    //Objeto calendar, para la obtención de horas, cara a guardar el log.
+                                    Calendar calendario = Calendar.getInstance();
+                                    int dia = calendario.get(Calendar.DAY_OF_MONTH);
+                                    int mes = calendario.get(Calendar.MONTH);
+                                    int year = calendario.get(Calendar.YEAR);
+                                    int hora = calendario.get(Calendar.HOUR_OF_DAY);
+                                    int minutos = calendario.get(Calendar.MINUTE);
+                                    int segundos = calendario.get(Calendar.SECOND);
+
+                                    String fecha = hora + "h" + minutos + "m" + segundos + "s_" + dia + "-" + mes + "-" + year;
+
+                                    //inicialización del objeto fichero, para indicar dónde guardaremos el log y su estructura de nombree
+                                    fichero = new FileWriter(fecha + "_escaner.log");
+                                    //Creamos el fichero .log.
+                                    PrintWriter escribe = new PrintWriter(fichero);
+                                    //Recorremos todas las ip's encontradas y las escribimos en el log con println.
+                                    for (int i = 0; i < ipListaCompleta.size(); i++) {
+                                        ipListaCompleta.get(i).setId(i + 1);
+                                        escribe.println(ipListaCompleta.get(i).getIp());
+                                    }
+                                    PrimaryController.setItemsTable(ipListaCompleta);
+                                    PrimaryController.setEstatus("ESTATUS: El escaneo finalizó con un resultado de " + ipListaCompleta.size() + " ip's detectadas.");
+
+                                    if (ipListaCompleta.isEmpty()) {
+                                        PrimaryController.setAlarmaError("No se ha encontrado ninguna ip en ese rango.");
                                     }
 
                                 } catch (IOException ex) {
-                                    System.out.println("Fichero NULL");
+
+                                } finally {
+                                    try {
+                                        if (fichero != null) {
+                                            fichero.close();
+                                        }
+
+                                    } catch (IOException ex) {
+                                        System.out.println("Fichero NULL");
+                                    }
                                 }
                             }
+
+                        } else {
+                            PrimaryController.setAlarmaError("El rango de la ip inicio es mayor a la ip final.");
                         }
 
-                    } else {
-                        PrimaryController.setAlarmaError("El rango de la ip inicio es mayor a la ip final..");
                     }
-
+                } else {
+                    PrimaryController.setAlarmaError("Ha introducido algún valor que no es un número.");
                 }
 
             } else {
@@ -159,16 +179,18 @@ public class Modelo {
 
     }
 
-    //Método por el cual viene el resultado desde la clase ping, cada ping envía su resultado en un objeto clase Ipss
     public static void setResultado(Ipss ipss) {
-        if (ipss.getViva()) {
-            ipListaCompleta.add(ipss);
-        }
+        //Método por el cual viene el resultado desde la clase ping, cada ping envía su resultado en un objeto clase Ipss
+        //filtramos y obtenemos sólo las vivas.
+//        if (ipss.getViva()) {
+//            ipListaCompleta.add(ipss);
+//        }
+ipListaCompleta.add(ipss);
     }
 
     public boolean recorrerRangoIp() {
-//Genera uno o varios arrays de ips para ir enviándoselo
-//para comprobar si están vivas o no, cada array tiene un tamaño asignado poor THREADS_SIZE_IPS
+//Genera uno o varios arrays de ips para ir enviándoselo a threadPing(),
+//para comprobar si están vivas o no, cada array tiene un tamaño asignado por THREADS_SIZE_IPS
         generaArrayRangosIp();
 
         ips = new ArrayList<>();
@@ -179,12 +201,14 @@ public class Modelo {
 
             ip = ipIn_1 + "." + ipIn_2 + "." + ipIn_3 + "." + ipIn_4;
             contadorIpScan++;
+
             if (ips.size() < THREADS_SIZE_IPS) {
                 ips.add(ip);
             } else {
                 threadPing(ips);
                 ips = new ArrayList<>();
                 ips.add(ip);
+  
             }
 
             if (ipIn_4 < RANGOMAX) {
@@ -214,14 +238,15 @@ public class Modelo {
             }
         } while (!ipFinal.equals(ip));
 
-        if (ips.size() != THREADS_SIZE_IPS) {
+        
             threadPing(ips);
-        }
+        
         return true;
 
     }
 
     public void threadPing(ArrayList<String> ips) {
+        //Generaamos Threads de la lista de ips que entra.
         if (stopNuevoThread) {
             System.out.println("THREAD");
             for (String ip : ips) {
@@ -242,10 +267,54 @@ public class Modelo {
                     }
                 }
             }
-        }else{
-            System.out.println("THREAD CANCELADO");
-            
+        } else {
         }
+    }
+
+    public boolean compruebaIps() {
+        //Método para comprobar que la ip de inicio sea menor que la ip final.
+        boolean mayor = true;
+
+        for (int i = 0; i < arrayIntInicio.length; i++) {
+            if (arrayIntInicio[i] > arrayIntFinal[i]) {
+                mayor = false;
+                break;
+
+            } else if (arrayIntInicio[i] == arrayIntFinal[i]) {
+
+            } else if (arrayIntInicio[i] < arrayIntFinal[i]) {
+                mayor = true;
+                break;
+            }
+        }
+        return mayor;
+    }
+
+    public void generaArrayRangosIp() {
+        //Pasamos el array de Strings a enteros de la ipInicial e ipFinal.
+        for (int i = 0; i < arrayIpInicio.length; i++) {
+            arrayIntInicio[i] = Integer.parseInt(arrayIpInicio[i]);
+            arrayIntFinal[i] = Integer.parseInt(arrayIpFinal[i]);
+        }
+        ipIn_1 = arrayIntInicio[0];
+        ipIn_2 = arrayIntInicio[1];
+        ipIn_3 = arrayIntInicio[2];
+        ipIn_4 = arrayIntInicio[3];
+
+        ipFi_1 = arrayIntFinal[0];
+        ipFi_2 = arrayIntFinal[1];
+        ipFi_3 = arrayIntFinal[2];
+        ipFi_4 = arrayIntFinal[3];
+
+        System.out.println("INICIO: " + ipIn_1 + "." + ipIn_2 + "." + ipIn_3 + "." + ipIn_4);
+        System.out.println("FINAL: " + ipFi_1 + "." + ipFi_2 + "." + ipFi_3 + "." + ipFi_4);
+
+    }
+
+    public void stopThreadsPing() {
+        //Método para parar la generación de threadPing
+        stopNuevoThread = false;
+        PrimaryController.setEstatus("ESTATUS: Cancelando ....");
     }
 
     //############### FINAL ESCANER DE RED ###############
@@ -412,7 +481,6 @@ public class Modelo {
                 arrayPuertos.add(i);
             }
         }
-
         if (arrayPuertosRango.isEmpty()) {
             System.out.println("No se han localizado ningún puerto abierto.");
         } else {
@@ -425,9 +493,7 @@ public class Modelo {
                 System.out.println(i + " - open");
             }
             System.out.println("###############################################");
-
         }
-
     }
 
     public void setPuertoUnico(int puertoUnico) {
@@ -445,50 +511,4 @@ public class Modelo {
 //############### FINAL ESCANER DE PUERTOS ###############
     }
 
-    public boolean compruebaIps() {
-
-        boolean mayor = true;
-
-        for (int i = 0; i < arrayIntInicio.length; i++) {
-            if (arrayIntInicio[i] > arrayIntFinal[i]) {
-                mayor = false;
-                break;
-
-            } else if (arrayIntInicio[i] == arrayIntFinal[i]) {
-
-            } else if (arrayIntInicio[i] < arrayIntFinal[i]) {
-                mayor = true;
-                break;
-            }
-        }
-
-        return mayor;
-
-    }
-
-    public void generaArrayRangosIp() {
-        //Pasamos el array de Strings a entero.
-        for (int i = 0; i < arrayIpInicio.length; i++) {
-            arrayIntInicio[i] = Integer.parseInt(arrayIpInicio[i]);
-            arrayIntFinal[i] = Integer.parseInt(arrayIpFinal[i]);
-        }
-
-        ipIn_1 = arrayIntInicio[0];
-        ipIn_2 = arrayIntInicio[1];
-        ipIn_3 = arrayIntInicio[2];
-        ipIn_4 = arrayIntInicio[3];
-
-        ipFi_1 = arrayIntFinal[0];
-        ipFi_2 = arrayIntFinal[1];
-        ipFi_3 = arrayIntFinal[2];
-        ipFi_4 = arrayIntFinal[3];
-    }
-
-    public void stopThreadsPing() {
-
-        System.out.println("PAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-        stopNuevoThread = false;
-        PrimaryController.setEstatus("ESTATUS: Cancelando ....");
-    }
-        
 }

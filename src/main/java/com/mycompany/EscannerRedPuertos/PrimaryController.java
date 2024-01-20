@@ -1,6 +1,7 @@
 package com.mycompany.EscannerRedPuertos;
 
 import java.net.URL;
+import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
@@ -27,6 +28,7 @@ public class PrimaryController implements Initializable {
 
     @FXML
     private Button btnBuscar;
+    private static Button btnBuscar_static;
 
     @FXML
     private TextField fieldIpInicio, fieldIpFinal;
@@ -37,24 +39,22 @@ public class PrimaryController implements Initializable {
     private static ArrayList<Ipss> ipListaCompleta;
 
     private Task tarea;
-    private Thread hiloEscaner;
+    private static Thread hiloEscaner;
     private Modelo model;
 
     public void initialize(URL location, ResourceBundle arg1) {
         lblProceso_static = lblProceso;
-        fieldIpInicio.setText("192.168.1.1");
-        fieldIpFinal.setText("193.168.1.1");
+        btnBuscar_static = btnBuscar;
+//        fieldIpInicio.setText("192.168.1.1");
+//        fieldIpFinal.setText("192.168.1.200");
     }
 
     public void btnBuscar() {
-
         if (btnBuscar.getText().equals("BUSCAR")) {
             btnBuscar.setText("STOP");
-        } else {
+        } else if (btnBuscar.getText().equals("STOP")) {
             btnBuscar.setText("BUSCAR");
-
         }
-
         if (tarea != null && tarea.isRunning()) {
             tarea.cancel();
             hiloEscaner.interrupt();
@@ -82,19 +82,18 @@ public class PrimaryController implements Initializable {
                         columna0.setCellValueFactory(new PropertyValueFactory("id"));
                         columna1.setCellValueFactory(new PropertyValueFactory("ip"));
                         columna2.setCellValueFactory(new PropertyValueFactory("viva"));
-
-                        //Se agregan las columnas al cableView.
-                        resulTable.getColumns().setAll(columna0, columna1, columna2);
-
+                        Platform.runLater(() -> {
+                            //Se agregan las columnas al cableView.
+                            resulTable.getColumns().setAll(columna0, columna1, columna2);
+                        });
                     }
                     return null;
                 }
             };
             hiloEscaner = new Thread(tarea);
             hiloEscaner.setDaemon(true);
-            hiloEscaner.setName("escaner");
+            hiloEscaner.setName("escanerThread");
             hiloEscaner.start();
-
         }
 
     }
@@ -103,6 +102,7 @@ public class PrimaryController implements Initializable {
         //Modelo nos envía el array cono de objetos Ipss, que nos indica las Ip's que están vivas.
         Platform.runLater(() -> {
             PrimaryController.ipListaCompleta = ipListaCompleta;
+            btnBuscar_static.setText("BUSCAR");
         });
     }
 
