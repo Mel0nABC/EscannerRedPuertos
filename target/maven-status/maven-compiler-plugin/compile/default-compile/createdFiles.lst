@@ -5,4 +5,5 @@ com/mycompany/EscannerRedPuertos/PrimaryController$1.class
 module-info.class
 com/mycompany/EscannerRedPuertos/Ipss.class
 com/mycompany/EscannerRedPuertos/Ping.class
+com/mycompany/EscannerRedPuertos/Inicializador.class
 com/mycompany/EscannerRedPuertos/PrimaryController.class

@@ -47,18 +47,13 @@ public class PrimaryController implements Initializable {
     }
 
     public void btnBuscar() {
-        
-        
-        
-        
-        if(btnBuscar.getText().equals("BUSCAR")){
+
+        if (btnBuscar.getText().equals("BUSCAR")) {
             btnBuscar.setText("STOP");
-        }else{
+        } else {
             btnBuscar.setText("BUSCAR");
-            
+
         }
-        
-        
 
         if (tarea != null && tarea.isRunning()) {
             tarea.cancel();
@@ -99,7 +94,6 @@ public class PrimaryController implements Initializable {
             hiloEscaner.setDaemon(true);
             hiloEscaner.setName("escaner");
             hiloEscaner.start();
-
 
         }
 
