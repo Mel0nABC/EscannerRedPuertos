@@ -17,17 +17,19 @@ public class Ping implements Runnable {
     private String ip;
     private static boolean resultado;
     private boolean ping;
-    private final int TIMEOUTPING = 1500;
+    private final int TIMEOUTPING = 1000;
 
     public Ping(String ip) {
         this.ip = ip;
     }
 
     public void ping() {
+        System.out.println(ip);
         String hostName = "";
         try {
             InetAddress address = InetAddress.getByName(ip);
             try {
+                
                 resultado = address.isReachable(TIMEOUTPING);
                 
                 //Para asignar el host de una ip viva.

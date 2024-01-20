@@ -40,8 +40,18 @@ public class Modelo {
     private static ArrayList<Ipss> ipListaCompleta;
     private ArrayList<String> ips;
     private ArrayList<Integer> arrayPuertosInt;
-    private int[] arrayIntInicio;
-    private int[] arrayIntFinal;
+
+    //Variables para comprobar los rangos de ip
+    private int[] arrayIntInicio = new int[4];
+    private int[] arrayIntFinal = new int[4];
+    private int ipIn_1;
+    private int ipIn_2;
+    private int ipIn_3;
+    private int ipIn_4;
+    private int ipFi_1;
+    private int ipFi_2;
+    private int ipFi_3;
+    private int ipFi_4;
 
     //Variables del control de finalizar o continuar aplicación.
     private boolean asignaIpFinal;
@@ -51,31 +61,20 @@ public class Modelo {
 
 //############### INICIO ESCANER DE RED ###############
     public void escanearRed(String ipInicioString, String ipFinalString) {
-        
         listaThreadsPing = new ArrayList<>();
         listaThreadsPorts = new ArrayList<>();
         arrayPuertosRango = new ArrayList<>();
         ipListaCompleta = new ArrayList<>();
         ips = new ArrayList<>();
         arrayPuertosInt = new ArrayList<>();
-
-        boolean asignaIpInicio = true;
+        ipInicio = "";
+        ipFinal = "";
 
         ipInicio = ipInicioString;
 
         arrayIpInicio = ipInicio.split("\\.");
 
         if (arrayIpInicio.length == 4) {
-            asignaIpInicio = true;
-        } else {
-            asignaIpInicio = false;
-            PrimaryController.setAlarmaError("Algo ocurre con la ip de inicio asignada, vuelva a intentarlo.");
-        }
-
-        if (asignaIpInicio) {
-
-            asignaIpFinal = true;
-
             ipFinal = ipFinalString;
 
             arrayIpFinal = ipFinal.split("\\.");
@@ -84,20 +83,64 @@ public class Modelo {
 
             if (arrayIpFinal.length == 4) {
 
-                if (ipInicio.compareTo(ipFinal) > 0) {
-                    PrimaryController.setAlarmaError("La ip inicial es de rango superior a la ip final.");
-                    asignaIpFinal = false;
-                    testRangos = false;
-                }
-                if (!testRangos) {
-                    System.out.println("La ip de inicio es mayor que la ip final, reviselo, por favor..");
-                    System.out.println("IP Inicio: " + ipInicio + " - IP Final: " + ipFinal);
-                    System.out.println("Vuelva a intentearlo.");
-                    asignaIpFinal = false;
+                generaArrayRangosIp();
+
+                if (ipIn_1 > 255 | ipIn_2 > 255 | ipIn_3 > 255 | ipIn_4 > 255 | ipFi_1 > 255 | ipFi_2 > 255 | ipFi_3 > 255 | ipFi_4 > 255) {
+                    PrimaryController.setAlarmaError("Algún rango de alguna ip es mayor a 255.");
                 } else {
-                    asignaIpFinal = true;
-                    System.out.println("Comienza el escaneo de "+ipInicioString+ " hasta "+ipFinalString);
+
+                    if (compruebaIps()) {
+                        boolean finalizaEscaneo = recorrerRangoIp();
+
+                        if (finalizaEscaneo) {
+                            try {
+
+                                //Objeto calendar, para la obtención de horas, cara a guardar el log.
+                                Calendar calendario = Calendar.getInstance();
+                                int dia = calendario.get(Calendar.DAY_OF_MONTH);
+                                int mes = calendario.get(Calendar.MONTH);
+                                int year = calendario.get(Calendar.YEAR);
+                                int hora = calendario.get(Calendar.HOUR_OF_DAY);
+                                int minutos = calendario.get(Calendar.MINUTE);
+                                int segundos = calendario.get(Calendar.SECOND);
+
+                                String fecha = hora + "h" + minutos + "m" + segundos + "s_" + dia + "-" + mes + "-" + year;
+
+                                //inicialización del objeto fichero, para indicar dónde guardaremos el log y su estructura de nombree
+                                fichero = new FileWriter(fecha + "_escaner.log");
+                                //Creamos el fichero .log.
+                                PrintWriter escribe = new PrintWriter(fichero);
+                                //Recorremos todas las ip's encontradas y las escribimos en el log con println.
+                                for (int i = 0; i < ipListaCompleta.size(); i++) {
+                                    ipListaCompleta.get(i).setId(i + 1);
+                                    escribe.println(ipListaCompleta.get(i).getIp());
+                                }
+                                PrimaryController.setItemsTable(ipListaCompleta);
+
+                                if (ipListaCompleta.isEmpty()) {
+                                    PrimaryController.setAlarmaError("No se ha encontrado ninguna ip en ese rango.");
+                                }
+
+                            } catch (IOException ex) {
+
+                            } finally {
+                                try {
+                                    if (fichero != null) {
+                                        fichero.close();
+                                    }
+
+                                } catch (IOException ex) {
+                                    System.out.println("Fichero NULL");
+                                }
+                            }
+                        }
+
+                    } else {
+                        PrimaryController.setAlarmaError("El rango de la ip inicio es mayor a la ip final..");
+                    }
+
                 }
+
             } else {
                 PrimaryController.setAlarmaError("Algo ocurre con la ip final asignada, vuelva a intentarlo.");
 
@@ -105,57 +148,7 @@ public class Modelo {
 
         } else {
 
-        }
-
-        if (asignaIpFinal) {
-            recorrerRangoIp();
-
-            try {
-
-                //Objeto calendar, para la obtención de horas, cara a guardar el log.
-                Calendar calendario = Calendar.getInstance();
-                int dia = calendario.get(Calendar.DAY_OF_MONTH);
-                int mes = calendario.get(Calendar.MONTH);
-                int year = calendario.get(Calendar.YEAR);
-                int hora = calendario.get(Calendar.HOUR_OF_DAY);
-                int minutos = calendario.get(Calendar.MINUTE);
-                int segundos = calendario.get(Calendar.SECOND);
-
-                String fecha = hora + "h" + minutos + "m" + segundos + "s_" + dia + "-" + mes + "-" + year;
-
-                //inicialización del objeto fichero, para indicar dónde guardaremos el log y su estructura de nombree
-                fichero = new FileWriter(fecha + "_escaner.log");
-                //Creamos el fichero .log.
-                PrintWriter escribe = new PrintWriter(fichero);
-
-                System.out.println("#########################################################################################");
-                System.out.println("#################### IP INICIO: " + ipInicio + " -- IP FINAL: " + ipFinal + " ####################");
-                System.out.println("Finalizó el escaneo de la red y se detectaron " + ipListaCompleta.size() + " ip's conectadas en " + contadorIpScan + " escaneadas.");
-                System.out.println("#########################################################################################");
-                System.out.println("IP's registradas en la red:");
-
-                //Recorremos todas las ip's encontradas y las escribimos en el log con println.
-                for (int i = 0; i < ipListaCompleta.size(); i++) {
-                    ipListaCompleta.get(i).setId(i + 1);
-                    System.out.println("ID: " + ipListaCompleta.get(i).getId() + " con IP: " + ipListaCompleta.get(i).getIp());
-
-                    escribe.println(ipListaCompleta.get(i).getIp());
-                }
-                System.out.println("#################################################################################1#########");
-                PrimaryController.setItemsTable(ipListaCompleta);
-            } catch (IOException ex) {
-
-            } finally {
-                try {
-                    if (fichero != null) {
-                        fichero.close();
-                    }
-
-                } catch (IOException ex) {
-                    System.out.println("Fichero NULL");
-                }
-            }
-
+            PrimaryController.setAlarmaError("Algo ocurre con la ip de inicio asignada, vuelva a intentarlo.");
         }
 
     }
@@ -167,22 +160,10 @@ public class Modelo {
         }
     }
 
-    public void recorrerRangoIp() {
-
-        //Arrays de enteros para pasar los arrays de string obtenidos de los strings de ipInicio e ipFinal.
-        arrayIntInicio = new int[4];
-        arrayIntFinal = new int[4];
-
-        //Pasamos el array de Strings a entero.
-        for (int i = 0; i < arrayIpInicio.length; i++) {
-            arrayIntInicio[i] = Integer.parseInt(arrayIpInicio[i]);
-            arrayIntFinal[i] = Integer.parseInt(arrayIpFinal[i]);
-        }
-
-        int ipIn_1 = arrayIntInicio[0];
-        int ipIn_2 = arrayIntInicio[1];
-        int ipIn_3 = arrayIntInicio[2];
-        int ipIn_4 = arrayIntInicio[3];
+    public boolean recorrerRangoIp() {
+//Genera uno o varios arrays de ips para ir enviándoselo
+//para comprobar si están vivas o no, cada array tiene un tamaño asignado poor THREADS_SIZE_IPS
+        generaArrayRangosIp();
 
         ips = new ArrayList<>();
 
@@ -192,7 +173,6 @@ public class Modelo {
 
             ip = ipIn_1 + "." + ipIn_2 + "." + ipIn_3 + "." + ipIn_4;
             contadorIpScan++;
-
             if (ips.size() < THREADS_SIZE_IPS) {
                 ips.add(ip);
             } else {
@@ -226,12 +206,12 @@ public class Modelo {
                 }
 
             }
-            //System.out.println(ip);
         } while (!ipFinal.equals(ip));
 
         if (ips.size() != THREADS_SIZE_IPS) {
             threadPing(ips);
         }
+        return true;
 
     }
 
@@ -452,6 +432,45 @@ public class Modelo {
         }
 
 //############### FINAL ESCANER DE PUERTOS ###############
+    }
+
+    public boolean compruebaIps() {
+
+        boolean mayor = true;
+
+        for (int i = 0; i < arrayIntInicio.length; i++) {
+            if (arrayIntInicio[i] > arrayIntFinal[i]) {
+                mayor = false;
+                break;
+
+            } else if (arrayIntInicio[i] == arrayIntFinal[i]) {
+
+            } else if (arrayIntInicio[i] < arrayIntFinal[i]) {
+                mayor = true;
+                break;
+            }
+        }
+
+        return mayor;
+
+    }
+
+    public void generaArrayRangosIp() {
+        //Pasamos el array de Strings a entero.
+        for (int i = 0; i < arrayIpInicio.length; i++) {
+            arrayIntInicio[i] = Integer.parseInt(arrayIpInicio[i]);
+            arrayIntFinal[i] = Integer.parseInt(arrayIpFinal[i]);
+        }
+
+        ipIn_1 = arrayIntInicio[0];
+        ipIn_2 = arrayIntInicio[1];
+        ipIn_3 = arrayIntInicio[2];
+        ipIn_4 = arrayIntInicio[3];
+
+        ipFi_1 = arrayIntFinal[0];
+        ipFi_2 = arrayIntFinal[1];
+        ipFi_3 = arrayIntFinal[2];
+        ipFi_4 = arrayIntFinal[3];
     }
 
 }
