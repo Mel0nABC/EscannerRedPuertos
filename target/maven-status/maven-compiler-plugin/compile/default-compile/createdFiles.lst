@@ -1,6 +1,7 @@
 com/mycompany/EscannerRedPuertos/Modelo.class
 com/mycompany/EscannerRedPuertos/EscannerPuertos.class
 com/mycompany/EscannerRedPuertos/App.class
+com/mycompany/EscannerRedPuertos/PrimaryController$1.class
 module-info.class
 com/mycompany/EscannerRedPuertos/Ipss.class
 com/mycompany/EscannerRedPuertos/Ping.class

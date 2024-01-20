@@ -45,7 +45,7 @@
          </padding>
       </HBox>
       <TableView fx:id="resulTable" layoutX="23.0" layoutY="103.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="906.0" prefWidth="1250.0" />
-      <Label fx:id="lblProceso" layoutX="14.0" layoutY="58.0" prefHeight="19.0" prefWidth="243.0" />
+      <Label fx:id="lblProceso" layoutX="23.0" layoutY="58.0" prefHeight="19.0" prefWidth="601.0" text="ESTATUS:" />
    </children>
    <padding>
       <Insets left="15.0" right="15.0" top="15.0" />

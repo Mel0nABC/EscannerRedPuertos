@@ -20,7 +20,7 @@ public class Modelo {
     private final int RANGOMAX = 255;
 
     //Constante para los hilos simultáneos a la hora de escanear ip's
-    private final int THREADS_SIZE_IPS = 500;
+    private final int THREADS_SIZE_IPS = 50;
     //Constante para los hilos simultáneos a la hora de escanear puertos
     private final int THREADS_SIZE_PUERTOS = 500;
 
@@ -35,6 +35,8 @@ public class Modelo {
     private String[] arrayPuertos;
     private int contadorIpScan = 0;
     private ArrayList<Thread> listaThreadsPing;
+    private ThreadGroup grupoDeThreads;
+    private boolean stopNuevoThread;
     private ArrayList<Thread> listaThreadsPorts;
     private ArrayList<Integer> arrayPuertosRango;
     private static ArrayList<Ipss> ipListaCompleta;
@@ -61,6 +63,9 @@ public class Modelo {
 
 //############### INICIO ESCANER DE RED ###############
     public void escanearRed(String ipInicioString, String ipFinalString) {
+        System.out.println("iniciamos escaneo de red.");
+        grupoDeThreads = new ThreadGroup("MiGrupoDeHilos");
+        stopNuevoThread = true;
         listaThreadsPing = new ArrayList<>();
         listaThreadsPorts = new ArrayList<>();
         arrayPuertosRango = new ArrayList<>();
@@ -90,6 +95,7 @@ public class Modelo {
                 } else {
 
                     if (compruebaIps()) {
+                        PrimaryController.setEstatus("ESTATUS: Escaneando ....");
                         boolean finalizaEscaneo = recorrerRangoIp();
 
                         if (finalizaEscaneo) {
@@ -116,6 +122,7 @@ public class Modelo {
                                     escribe.println(ipListaCompleta.get(i).getIp());
                                 }
                                 PrimaryController.setItemsTable(ipListaCompleta);
+                                PrimaryController.setEstatus("ESTATUS: El escaneo finalizó con un resultado de " + ipListaCompleta.size() + " ip's detectadas.");
 
                                 if (ipListaCompleta.isEmpty()) {
                                     PrimaryController.setAlarmaError("No se ha encontrado ninguna ip en ese rango.");
@@ -147,7 +154,6 @@ public class Modelo {
             }
 
         } else {
-
             PrimaryController.setAlarmaError("Algo ocurre con la ip de inicio asignada, vuelva a intentarlo.");
         }
 
@@ -216,24 +222,29 @@ public class Modelo {
     }
 
     public void threadPing(ArrayList<String> ips) {
+        if (stopNuevoThread) {
+            System.out.println("THREAD");
+            for (String ip : ips) {
+                Ping ping = new Ping(ip);
+                Thread t = new Thread(grupoDeThreads, ping);
+                t.setName(ip);
+                t.start();
+                listaThreadsPing.add(t);
+            }
+            boolean estado = true;
+            while (estado) {
 
-        for (String ip : ips) {
-            Ping ping = new Ping(ip);
-            Thread t = new Thread(ping);
-            t.setName(ip);
-            t.start();
-            listaThreadsPing.add(t);
-        }
-        boolean estado = true;
-        while (estado) {
-
-            estado = false;
-            for (Thread t : listaThreadsPing) {
-                if (t.isAlive()) {
-                    t.interrupt();
-                    estado = true;
+                estado = false;
+                for (Thread t : listaThreadsPing) {
+                    if (t.isAlive()) {
+                        t.interrupt();
+                        estado = true;
+                    }
                 }
             }
+        }else{
+            System.out.println("THREAD CANCELADO");
+            
         }
     }
 
@@ -473,4 +484,11 @@ public class Modelo {
         ipFi_4 = arrayIntFinal[3];
     }
 
+    public void stopThreadsPing() {
+
+        System.out.println("PAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAARAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+        stopNuevoThread = false;
+        PrimaryController.setEstatus("ESTATUS: Cancelando ....");
+    }
+        
 }
