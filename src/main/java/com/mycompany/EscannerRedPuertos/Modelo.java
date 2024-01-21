@@ -264,6 +264,8 @@ public class Modelo {
                     ex.printStackTrace();
                 }
             }
+            
+
             boolean estado = true;
             while (estado) {
 
