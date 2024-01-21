@@ -17,7 +17,7 @@ public class Ping implements Runnable {
     private String ip;
     private static boolean resultado;
     private boolean ping;
-    private final int TIMEOUTPING = 1000;
+    private final int TIMEOUTPING = 1500;
 
     public Ping(String ip) {
         this.ip = ip;

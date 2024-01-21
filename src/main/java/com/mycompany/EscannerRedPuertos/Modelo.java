@@ -20,9 +20,9 @@ public class Modelo {
     private final int RANGOMAX = 255;
 
     //Constante para los hilos simultáneos a la hora de escanear ip's
-    private final int THREADS_SIZE_IPS = 21;
+    private final int THREADS_SIZE_IPS = 500;
     //Constante para los hilos simultáneos a la hora de escanear puertos
-    private final int THREADS_SIZE_PUERTOS = 500;
+    private final int THREADS_SIZE_PUERTOS = 4;
 
     //Declaración e inicialización de variables del aplicativo.
     private String ipInicio = "";
@@ -37,6 +37,7 @@ public class Modelo {
     private ArrayList<Thread> listaThreadsPing;
     private ThreadGroup grupoDeThreads;
     private boolean stopNuevoThread;
+
     private ArrayList<Thread> listaThreadsPorts;
     private ArrayList<Integer> arrayPuertosRango;
     private static ArrayList<Ipss> ipListaCompleta;
@@ -246,7 +247,7 @@ public class Modelo {
 
     }
 
-    public void threadPing(ArrayList<String> ips){
+    public void threadPing(ArrayList<String> ips) {
         //Generaamos Threads de la lista de ips que entra.
         if (stopNuevoThread) {
             System.out.println("THREAD");
@@ -257,6 +258,7 @@ public class Modelo {
                     t.setName(ip);
                     t.start();
                     listaThreadsPing.add(t);
+                    PrimaryController.setEstatus("Escaneando: " + ip);
 //                    Se añade pequeño delay, porque si no se perdian ip's escaneadas, 
 //                    no llegaban a salir en el array final.
                     Thread.sleep(10);
@@ -264,7 +266,6 @@ public class Modelo {
                     ex.printStackTrace();
                 }
             }
-            
 
             boolean estado = true;
             while (estado) {
@@ -328,37 +329,41 @@ public class Modelo {
     }
 
     //############### FINAL ESCANER DE RED ###############
+    //####################################################
+    //####################################################
+    //####################################################
+    //####################################################
+    //####################################################
+    //####################################################
+    //####################################################
+    //####################################################
+    //####################################################
     //############### INICIO ESCANER DE PUERTOS ###############
     //Método para escanear los puertos, opción del menú número 2.
-    public void portEscaner(String ipEscan, String puertos) {
-        System.out.println("########################");
-        System.out.println("## ESCANER DE PUERTOS ##");
-        System.out.println("########################");
+    public void portEscaner(String ipEscanEntrada, String puertosEntrada) {
 
-        boolean asignaIpEscanear = true;
+        arrayPuertosInt = new ArrayList<>();
+        arrayPuertosRango = new ArrayList<>();
+        listaThreadsPorts = new ArrayList<>();
 
-        do {
-            System.out.println("Por favor, indique ip a escanear:");
-            ipEscan = ipEscan;
+        boolean asignaIpEscanear = false;
 
-            arrayIpEscan = ipEscan.split("\\.");
+        this.ipEscan = ipEscanEntrada;
+        System.out.println("    IP AL PRINCIPIO PORT ESCANER; " + ipEscan);
+        arrayIpEscan = ipEscan.split("\\.");
 
-            if (arrayIpEscan.length == 4) {
-                asignaIpEscanear = false;
-            } else {
-                System.out.println("Algo ocurre con la ip asignada, vuelva a intentarlo.");
-            }
-        } while (asignaIpEscanear);
+        if (arrayIpEscan.length == 4) {
+            asignaIpEscanear = true;
+        } else {
+            PrimaryController.setAlarmaError("Algo ocurre con la ip asignada, vuelva a intentarlo.");
+        }
 
         boolean seleccionPuertos = true;
         boolean puertoIndividual = true;
-        do {
 
-            System.out.println("Por favor, indique los puertos. Individual, concretos, rango");
-            System.out.println("Ejemplo individual: 2000");
-            System.out.println("Ejemplo concretos: 2000,2001,8080 ...");
-            System.out.println("Ejemplo rango: 2000-2010");
-            puertos = puertos;
+        if (asignaIpEscanear) {
+
+            this.puertos = puertosEntrada;
 
             boolean tipoSeparacion = false;
 
@@ -384,19 +389,21 @@ public class Modelo {
                 if (tipoSeparacion) {
                     System.out.println("numeric");
                     arrayPuertos = puertos.split(",");
-
+                    String puertosError = "";
                     boolean multiplesPuertosOk = true;
                     for (int i = 0; i < arrayPuertos.length; i++) {
                         if (isNumeric(arrayPuertos[i])) {
                             arrayPuertosInt.add(Integer.parseInt(arrayPuertos[i]));
                             seleccionPuertos = false;
                         } else {
-                            System.out.println("El caràcter '" + arrayPuertos[i] + "' no corresponde a un número, se reinicia la aplicación.");
+                            puertosError += arrayPuertos[i] + " - ";
+                            System.out.println();
                             multiplesPuertosOk = false;
                             seleccionPuertos = true;
                         }
 
                     }
+                    PrimaryController.setAlarmaError("El caràcter '" + puertosError + "' no corresponde a un número, se reinicia la aplicación.");
 
                     if (multiplesPuertosOk) {
                         escanerPuertos();
@@ -409,13 +416,13 @@ public class Modelo {
                     if (isNumeric(arrayPuertos[0])) {
                         puertoInicio = Integer.parseInt(arrayPuertos[0]);
                     } else {
-                        System.out.println("El carácter '" + arrayPuertos[0] + "' no corresponde a un número, se reinicia la aplicación.");
+                        PrimaryController.setAlarmaError("El carácter '" + arrayPuertos[0] + "' no corresponde a un número, se reinicia la aplicación.");
                     }
 
                     if (isNumeric(arrayPuertos[1])) {
                         puertoFinal = Integer.parseInt(arrayPuertos[1]);
                     } else {
-                        System.out.println("El carácter '" + arrayPuertos[1] + "' no corresponde a un número, se reinicia la aplicación.");
+                        PrimaryController.setAlarmaError("El carácter '" + arrayPuertos[1] + "' no corresponde a un número, se reinicia la aplicación.");
                     }
                     if (isNumeric(arrayPuertos[0]) && isNumeric(arrayPuertos[1])) {
                         seleccionPuertos = false;
@@ -424,7 +431,7 @@ public class Modelo {
 
                 }
             }
-        } while (seleccionPuertos);
+        }
 
     }
 
@@ -438,8 +445,9 @@ public class Modelo {
         ArrayList<Integer> array = escaner.getArray();
 
         if (array.size() == 0) {
-            System.out.println("No se han localizado ningún puerto abierto.");
+            PrimaryController.setAlarmaError("No se han localizado ningún puerto abierto.");
         } else {
+            PrimaryController.setAlarmaError("Finalizó el escaneo de puertos abiertos..");
             System.out.println("###############################################");
             System.out.println("### Finalizó el escaneo de puertos abiertos ###");
             System.out.println("###############################################");
@@ -451,16 +459,49 @@ public class Modelo {
 
     }
 
+    public void escanerPuertosRango(int puertoInicio, int puertoFinal) {
+        ArrayList<Integer> arrayPuertos = new ArrayList<>();
+
+        for (int i = 0; i <= puertoFinal; i++) {
+            if (arrayPuertos.size() < THREADS_SIZE_PUERTOS) {
+                arrayPuertos.add(puertoInicio+i);
+            } else {
+                threadPort(arrayPuertos);
+                arrayPuertos = new ArrayList<>();
+                arrayPuertos.add(puertoInicio+i);
+            }
+        }
+
+
+
+        if (arrayPuertosRango.isEmpty()) {
+            PrimaryController.setAlarmaError("No se han localizado ningún puerto abierto.");
+        } else {
+            PrimaryController.setAlarmaError("Finalizó el escaneo de puertos abiertos.");
+            System.out.println("###############################################");
+            System.out.println("### Finalizó el escaneo de puertos abiertos ###");
+            System.out.println("###############################################");
+            System.out.println("Puertos del " + puertoInicio + " al " + puertoFinal);
+            for (int i : arrayPuertosRango) {
+                System.out.println(i + " - open");
+            }
+            System.out.println("###############################################");
+        }
+    }
+
     public void threadPort(ArrayList<Integer> arrayPuertos) {
-
         for (int i = 0; i < arrayPuertos.size(); i++) {
-
-            EscannerPuertos escaner = new EscannerPuertos(ipEscan, arrayPuertos.get(i));
-            Thread t = new Thread(escaner);
-            t.setName("escaner" + arrayPuertos.get(i));
-            t.start();
-            listaThreadsPorts.add(t);
-
+            try {
+                EscannerPuertos escaner = new EscannerPuertos(ipEscan, arrayPuertos.get(i));
+                Thread t = new Thread(escaner);
+                t.setName("escaner" + arrayPuertos.get(i));
+                t.start();
+                listaThreadsPorts.add(t);
+                Thread.sleep(10);
+                System.out.println("PUERTO --> "+arrayPuertos.get(i));
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
         }
 
         boolean estado = true;
@@ -475,35 +516,6 @@ public class Modelo {
             }
         }
 
-    }
-
-    public void escanerPuertosRango(int puertoInicio, int puertoFinal) {
-
-        ArrayList<Integer> arrayPuertos = new ArrayList<>();
-
-        for (int i = puertoInicio; i <= puertoFinal; i++) {
-
-            if (arrayPuertos.size() < THREADS_SIZE_PUERTOS) {
-                arrayPuertos.add(i);
-            } else {
-                threadPort(arrayPuertos);
-                arrayPuertos = new ArrayList<>();
-                arrayPuertos.add(i);
-            }
-        }
-        if (arrayPuertosRango.isEmpty()) {
-            System.out.println("No se han localizado ningún puerto abierto.");
-        } else {
-
-            System.out.println("###############################################");
-            System.out.println("### Finalizó el escaneo de puertos abiertos ###");
-            System.out.println("###############################################");
-            System.out.println("Puertos del " + puertoInicio + " al " + puertoFinal);
-            for (int i : arrayPuertosRango) {
-                System.out.println(i + " - open");
-            }
-            System.out.println("###############################################");
-        }
     }
 
     public void setPuertoUnico(int puertoUnico) {

@@ -1,7 +1,6 @@
 package com.mycompany.EscannerRedPuertos;
 
 import java.net.URL;
-import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
@@ -28,11 +27,11 @@ public class PrimaryController implements Initializable {
     private static Label lblProceso_static;
 
     @FXML
-    private Button btnBuscar,btnBorrar;
+    private Button btnBuscar, btnBorrar, btnScanPort;
     private static Button btnBuscar_static;
 
     @FXML
-    private TextField fieldIpInicio, fieldIpFinal;
+    private TextField fieldIpInicio, fieldIpFinal, fieldIpEscan, fieldPuertos;
     @FXML
     private TableView<Ipss> resulTable;
 
@@ -51,14 +50,24 @@ public class PrimaryController implements Initializable {
     public void initialize(URL location, ResourceBundle arg1) {
         lblProceso_static = lblProceso;
         btnBuscar_static = btnBuscar;
+        model = new Modelo();
         fieldIpInicio.setText("192.168.1.1");
         fieldIpFinal.setText("192.168.1.255");
+
+//Para seleccionar la ip de la lista de ips escaneadas y colocarla en su tableField, fieldIpEscan
+        resulTable.setOnMouseClicked(event -> {
+            String ipSeleccionada = resulTable.getSelectionModel().getSelectedItem().getIp();
+            fieldIpEscan.setText(ipSeleccionada);
+        });
+
     }
+//############### INICIO ESCANER DE RED ###############
 
     public void btnBuscar() {
 
         if (btnBuscar.getText().equals("SCAN")) {
             btnBuscar.setText("STOP");
+            setDisableEnableBtn();
         } else if (btnBuscar.getText().equals("STOP")) {
             btnBuscar.setText("SCAN");
         }
@@ -71,13 +80,13 @@ public class PrimaryController implements Initializable {
                 @Override
                 protected Void call() throws Exception {
                     //Escaneamos la red con los rangos especificados.
-                    model = new Modelo();
                     model.escanearRed(fieldIpInicio.getText(), fieldIpFinal.getText());
                     if (ipListaCompleta != null) {
 
                         //Filtramos array de Ipss para ver si usamos todas las ips escaneadas o sólo las vivas antes de iniciar el scan.
                         mostrarTodoONoAntesDeScan();
                         insertarTabla(ipListaCompletaFinal);
+                        setDisableEnableBtn();
                     }
                     return null;
                 }
@@ -89,10 +98,20 @@ public class PrimaryController implements Initializable {
         }
 
     }
-    
-    public void btnBorrar(){
+
+    public void btnBorrar() {
         ArrayList<Ipss> ipListaVacia = new ArrayList<>();
         insertarTabla(ipListaVacia);
+    }
+
+    public void setDisableEnableBtn() {
+        if (btnBorrar.isDisable()) {
+            mostrarTodoScan.setDisable(false);
+            btnBorrar.setDisable(false);
+        } else {
+            mostrarTodoScan.setDisable(true);
+            btnBorrar.setDisable(true);
+        }
     }
 
     public void insertarTabla(ArrayList<Ipss> lista) {
@@ -176,4 +195,23 @@ public class PrimaryController implements Initializable {
         });
     }
 
+//############### FINAL ESCANER DE RED ###############
+//############### INICIO ESCANER DE PUERTOS ###############
+    public void portScan() {
+
+        String ipEscan = fieldIpEscan.getText();
+        String puertos = fieldPuertos.getText();
+        
+        if (ipEscan.equals("")) {
+            PrimaryController.setAlarmaError("Debe seleccionar o introducir una ip manualmente.");
+        } else if (puertos.equals("")) {
+            PrimaryController.setAlarmaError("No ha especificado puertos a escanear.");
+        } else {
+
+            model.portEscaner(ipEscan, puertos);
+
+        }
+    }
+
+//############### FINAL ESCANER DE PUERTOS ###############
 }
