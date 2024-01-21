@@ -12,6 +12,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -27,7 +28,7 @@ public class PrimaryController implements Initializable {
     private static Label lblProceso_static;
 
     @FXML
-    private Button btnBuscar;
+    private Button btnBuscar,btnBorrar;
     private static Button btnBuscar_static;
 
     @FXML
@@ -35,8 +36,13 @@ public class PrimaryController implements Initializable {
     @FXML
     private TableView<Ipss> resulTable;
 
+    @FXML
+    private CheckBox mostrarTodoScan;
+
     //Variable que recibimos por método static desde modelo, es el array de ips vivas.
     private static ArrayList<Ipss> ipListaCompleta;
+    //Esta variable es para usarla de filtro si el checkbox está o no marcado.
+    private static ArrayList<Ipss> ipListaCompletaFinal;
 
     private Task tarea;
     private static Thread hiloEscaner;
@@ -45,15 +51,16 @@ public class PrimaryController implements Initializable {
     public void initialize(URL location, ResourceBundle arg1) {
         lblProceso_static = lblProceso;
         btnBuscar_static = btnBuscar;
-//        fieldIpInicio.setText("192.168.1.1");
-//        fieldIpFinal.setText("192.168.1.200");
+        fieldIpInicio.setText("192.168.1.1");
+        fieldIpFinal.setText("192.168.1.255");
     }
 
     public void btnBuscar() {
-        if (btnBuscar.getText().equals("BUSCAR")) {
+
+        if (btnBuscar.getText().equals("SCAN")) {
             btnBuscar.setText("STOP");
         } else if (btnBuscar.getText().equals("STOP")) {
-            btnBuscar.setText("BUSCAR");
+            btnBuscar.setText("SCAN");
         }
         if (tarea != null && tarea.isRunning()) {
             tarea.cancel();
@@ -66,26 +73,11 @@ public class PrimaryController implements Initializable {
                     //Escaneamos la red con los rangos especificados.
                     model = new Modelo();
                     model.escanearRed(fieldIpInicio.getText(), fieldIpFinal.getText());
-                    if (ipListaCompleta == null) {
-//                    lblProceso.setText("ESTATUS:");
-                    } else {
+                    if (ipListaCompleta != null) {
 
-                        //Creamos un objeto ObservableList de Ipss, este viene por el método setItemsTable, que nos lo envia la clase Modelo.
-                        ObservableList<Ipss> observableList = FXCollections.observableArrayList(ipListaCompleta);
-                        resulTable.setItems(observableList);
-                        //Se crean las columnas
-                        TableColumn<Ipss, String> columna0 = new TableColumn<>("ID");
-                        TableColumn<Ipss, String> columna1 = new TableColumn<>("IPS");
-                        TableColumn<Ipss, String> columna2 = new TableColumn<>("¿VIVA?");
-
-                        //Se especifica el campo de Ipss que se visualizará en cada columna
-                        columna0.setCellValueFactory(new PropertyValueFactory("id"));
-                        columna1.setCellValueFactory(new PropertyValueFactory("ip"));
-                        columna2.setCellValueFactory(new PropertyValueFactory("viva"));
-                        Platform.runLater(() -> {
-                            //Se agregan las columnas al cableView.
-                            resulTable.getColumns().setAll(columna0, columna1, columna2);
-                        });
+                        //Filtramos array de Ipss para ver si usamos todas las ips escaneadas o sólo las vivas antes de iniciar el scan.
+                        mostrarTodoONoAntesDeScan();
+                        insertarTabla(ipListaCompletaFinal);
                     }
                     return null;
                 }
@@ -97,17 +89,79 @@ public class PrimaryController implements Initializable {
         }
 
     }
+    
+    public void btnBorrar(){
+        ArrayList<Ipss> ipListaVacia = new ArrayList<>();
+        insertarTabla(ipListaVacia);
+    }
+
+    public void insertarTabla(ArrayList<Ipss> lista) {
+        //Creamos un objeto ObservableList de Ipss, este viene por el método setItemsTable, que nos lo envia la clase Modelo.
+        ObservableList<Ipss> observableList = FXCollections.observableArrayList(lista);
+        resulTable.setItems(observableList);
+        //Se crean las columnas
+        TableColumn<Ipss, String> columna0 = new TableColumn<>("ID");
+        TableColumn<Ipss, String> columna1 = new TableColumn<>("IPS");
+        TableColumn<Ipss, String> columna2 = new TableColumn<>("¿VIVA?");
+
+        //Se especifica el campo de Ipss que se visualizará en cada columna
+        columna0.setCellValueFactory(new PropertyValueFactory("id"));
+        columna1.setCellValueFactory(new PropertyValueFactory("ip"));
+        columna2.setCellValueFactory(new PropertyValueFactory("viva"));
+        Platform.runLater(() -> {
+            //Se agregan las columnas al cableView.
+            resulTable.getColumns().setAll(columna0, columna1, columna2);
+        });
+    }
+
+    public void mostrarTodoONoAntesDeScan() {
+        ipListaCompletaFinal = new ArrayList<>();
+        if (mostrarTodoScan.isSelected()) {
+            System.out.println("SELECCIONADO");
+            ipListaCompletaFinal = ipListaCompleta;
+        } else {
+            for (Ipss ip : ipListaCompleta) {
+                if (ip.getViva()) {
+                    ipListaCompletaFinal.add(ip);
+                }
+            }
+
+            System.out.println("NO SELECCIONADO");
+        }
+    }
+
+    public void mostrarTodoONoDespuesDeScan() {
+        //Filtra las ips que ya tenemos en la lista, mostrando todas o sólo vivas.
+
+        if (ipListaCompleta != null) {
+            ipListaCompletaFinal = new ArrayList<>();
+            if (mostrarTodoScan.isSelected()) {
+                System.out.println("SELECCIONADO");
+                ipListaCompletaFinal = ipListaCompleta;
+            } else {
+                for (Ipss ip : ipListaCompleta) {
+                    if (ip.getViva()) {
+                        ipListaCompletaFinal.add(ip);
+                    }
+                }
+
+                System.out.println("NO SELECCIONADO");
+            }
+            insertarTabla(ipListaCompletaFinal);
+        }
+    }
 
     public static void setItemsTable(ArrayList<Ipss> ipListaCompleta) {
         //Modelo nos envía el array cono de objetos Ipss, que nos indica las Ip's que están vivas.
         Platform.runLater(() -> {
             PrimaryController.ipListaCompleta = ipListaCompleta;
-            btnBuscar_static.setText("BUSCAR");
+            btnBuscar_static.setText("SCAN");
         });
     }
 
     public static void setAlarmaError(String msg) {
         Platform.runLater(() -> {
+            btnBuscar_static.setText("SCAN");
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("¡AVISO!");
             alert.setHeaderText(null);

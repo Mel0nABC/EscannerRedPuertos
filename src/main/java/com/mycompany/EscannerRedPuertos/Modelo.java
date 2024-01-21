@@ -20,7 +20,7 @@ public class Modelo {
     private final int RANGOMAX = 255;
 
     //Constante para los hilos simultáneos a la hora de escanear ip's
-    private final int THREADS_SIZE_IPS = 500;
+    private final int THREADS_SIZE_IPS = 21;
     //Constante para los hilos simultáneos a la hora de escanear puertos
     private final int THREADS_SIZE_PUERTOS = 500;
 
@@ -60,8 +60,8 @@ public class Modelo {
 
 //############### INICIO ESCANER DE RED ###############
     public void escanearRed(String ipInicioString, String ipFinalString) {
-        System.out.println("IP INICIAL "+ipInicioString);
-        System.out.println("IP FINAL: "+ipFinalString);
+        System.out.println("IP INICIAL " + ipInicioString);
+        System.out.println("IP FINAL: " + ipFinalString);
         grupoDeThreads = new ThreadGroup("MiGrupoDeHilos");
         stopNuevoThread = true;
         listaThreadsPing = new ArrayList<>();
@@ -108,7 +108,7 @@ public class Modelo {
                     generaArrayRangosIp();
 
                     if (ipIn_1 > RANGOMAX | ipIn_2 > RANGOMAX | ipIn_3 > RANGOMAX | ipIn_4 > RANGOMAX | ipFi_1 > RANGOMAX | ipFi_2 > RANGOMAX | ipFi_3 > 255 | ipFi_4 > RANGOMAX) {
-                        PrimaryController.setAlarmaError("Algún rango de alguna ip es mayor a "+RANGOMAX+".");
+                        PrimaryController.setAlarmaError("Algún rango de alguna ip es mayor a " + RANGOMAX + ".");
                     } else {
 
                         if (compruebaIps()) {
@@ -139,7 +139,7 @@ public class Modelo {
                                         escribe.println(ipListaCompleta.get(i).getIp());
                                     }
                                     PrimaryController.setItemsTable(ipListaCompleta);
-                                    PrimaryController.setEstatus("ESTATUS: El escaneo finalizó con un resultado de " + ipListaCompleta.size() + " ip's detectadas.");
+                                    PrimaryController.setEstatus("ESTATUS: El escaneo finalizó con un resultado de " + ipListaCompleta.size() + " ip's escaneadas.");
 
                                     if (ipListaCompleta.isEmpty()) {
                                         PrimaryController.setAlarmaError("No se ha encontrado ninguna ip en ese rango.");
@@ -182,10 +182,12 @@ public class Modelo {
     public static void setResultado(Ipss ipss) {
         //Método por el cual viene el resultado desde la clase ping, cada ping envía su resultado en un objeto clase Ipss
         //filtramos y obtenemos sólo las vivas.
+        //primera opcion filtra resultados de viva, segunda opción no filtra nada.
 //        if (ipss.getViva()) {
 //            ipListaCompleta.add(ipss);
 //        }
-ipListaCompleta.add(ipss);
+        ipListaCompleta.add(ipss);
+
     }
 
     public boolean recorrerRangoIp() {
@@ -208,7 +210,7 @@ ipListaCompleta.add(ipss);
                 threadPing(ips);
                 ips = new ArrayList<>();
                 ips.add(ip);
-  
+
             }
 
             if (ipIn_4 < RANGOMAX) {
@@ -238,23 +240,29 @@ ipListaCompleta.add(ipss);
             }
         } while (!ipFinal.equals(ip));
 
-        
-            threadPing(ips);
-        
+        threadPing(ips);
+
         return true;
 
     }
 
-    public void threadPing(ArrayList<String> ips) {
+    public void threadPing(ArrayList<String> ips){
         //Generaamos Threads de la lista de ips que entra.
         if (stopNuevoThread) {
             System.out.println("THREAD");
             for (String ip : ips) {
-                Ping ping = new Ping(ip);
-                Thread t = new Thread(grupoDeThreads, ping);
-                t.setName(ip);
-                t.start();
-                listaThreadsPing.add(t);
+                try {
+                    Ping ping = new Ping(ip);
+                    Thread t = new Thread(grupoDeThreads, ping);
+                    t.setName(ip);
+                    t.start();
+                    listaThreadsPing.add(t);
+//                    Se añade pequeño delay, porque si no se perdian ip's escaneadas, 
+//                    no llegaban a salir en el array final.
+                    Thread.sleep(10);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
             }
             boolean estado = true;
             while (estado) {
