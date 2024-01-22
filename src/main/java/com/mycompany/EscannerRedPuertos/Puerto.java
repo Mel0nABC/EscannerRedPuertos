@@ -14,6 +14,10 @@ public class Puerto {
     private int puerto;
     private boolean abierto;
 
+    public Puerto(){
+        
+    }
+    
     public Puerto(String ip, int puerto, boolean abierto) {
         this.ip = ip;
         this.puerto = puerto;

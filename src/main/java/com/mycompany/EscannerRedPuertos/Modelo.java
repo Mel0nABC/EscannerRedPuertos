@@ -117,12 +117,12 @@ public class Modelo {
                             //Generamos arrays de ips según THREADS_SIZE_IPS Y los enviamos a threadPing para hacer ping.
                             boolean finalizaEscaneo = recorrerRangoIp();
 
-                            if (finalizaEscaneo) {
+                            if (!finalizaEscaneo) {
 
                                 PrimaryController.setItemsTable(ipListaCompleta);
-                                for(Ipss p: ipListaCompleta){
-                                    System.out.println("ID: "+p.getId()+" - IP: "+p.getIp());
-                                }
+//                                for(Ipss p: ipListaCompleta){
+//                                    System.out.println("ID: "+p.getId()+" - IP: "+p.getIp());
+//                                }
                                 PrimaryController.setEstatus("ESTATUS: El escaneo finalizó con un resultado de " + ipListaCompleta.size() + " ip's escaneadas.");
 
                                 if (ipListaCompleta.isEmpty()) {
@@ -163,7 +163,7 @@ public class Modelo {
     }
 
     public void guardarEscaneoLocal(ArrayList<Ipss> listaGuardar) {
-        
+
         //Método llamado por el botón GUARDAR para guardar el histórico de la lista completa de 
         //IPS y se los puertos que se hayan detectado abiertos.
         try {
@@ -188,29 +188,28 @@ public class Modelo {
                 String estado = "";
                 String puertosAbiertos = "No se escanearon puertos.";
                 if (listaGuardar.get(i).getViva()) {
-                    estado = "Ip responde";
+                    estado = "SI";
                     puertosAbiertos = "";
                     ArrayList<Puerto> listaPuertos = listaGuardar.get(i).getPuertos();
 
                     if (listaPuertos != null) {
 
                         for (int j = 0; j < listaPuertos.size(); j++) {
-                            if (listaPuertos.size() != j) {
-                                puertosAbiertos += listaPuertos.get(j).getPuerto() + ", ";
+                            if (j + 1 == listaPuertos.size()) {
+                                puertosAbiertos += listaPuertos.get(j).getPuerto()+".";
                             } else {
-                                puertosAbiertos += listaPuertos.get(j).getPuerto();
+                                puertosAbiertos += listaPuertos.get(j).getPuerto() + ", ";
                             }
                         }
 
-                    }else{
-                        puertosAbiertos = "No se han escaneado puertos en esta ip.";
                     }
-
                 } else {
-                    estado = "Ip No responde";
+                    estado = "NO";
                 }
 
-                escribe.println((i + 1) + " - " + listaGuardar.get(i).getIp() + " - " + estado + " PUERTOS ABIERTOS: " + puertosAbiertos);
+                escribe.println("ID: " + (i + 1) + " - IP: " + listaGuardar.get(i).getIp() + ":");
+                escribe.println("               IP VIVA: " + estado);
+                escribe.println("               PUERTOS ABIERTOS: " + puertosAbiertos);
             }
 
         } catch (IOException ex) {
@@ -280,17 +279,17 @@ public class Modelo {
 
         threadPing(ips);
 
-        return true;
+        return false;
 
     }
 
     public void threadPing(ArrayList<String> ips) {
         //Generaamos Threads de la lista de ips que entra.
         if (stopNuevoThread) {
-            
+
             for (String ip : ips) {
                 try {
-                    Ping ping = new Ping(ip,contadorIds);
+                    Ping ping = new Ping(ip, contadorIds);
                     Thread t = new Thread(grupoDeThreads, ping);
                     t.setName(ip);
                     t.start();
@@ -464,7 +463,6 @@ public class Modelo {
                 }
             }
         }
-
     }
 
     public void escanerPuertos() {
@@ -480,7 +478,6 @@ public class Modelo {
         if (array.size() == 0) {
             PrimaryController.setAlarmaError("No se han localizado ningún puerto abierto.");
             PrimaryController.setEstatus("Puertos detectados abiertos: " + array.size());
-            PrimaryController.setDisableEnableBtn();
         } else {
             for (int i : array) {
                 Puerto puertoTmp = new Puerto(ipEscan, i, true);
@@ -519,7 +516,6 @@ public class Modelo {
 
         if (arrayPuertos.size() == 0) {
             PrimaryController.setAlarmaError("No se han localizado ningún puerto abierto.");
-            PrimaryController.setDisableEnableBtn();
         } else {
 
             do {

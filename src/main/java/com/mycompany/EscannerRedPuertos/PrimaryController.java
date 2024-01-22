@@ -2,8 +2,12 @@ package com.mycompany.EscannerRedPuertos;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -88,10 +92,14 @@ public class PrimaryController implements Initializable {
                 + "Ejemplo rango: 2000-2010";
         instrucciones.setText(textoInformativo);
 
-        
+        /*
+        LISTA DE ERRORES DETECTADOR Y A SOLUCIONAR:
+
+         */
+
         //Zona para hacer pruebas rápidas.
 //        fieldIpInicio.setText("192.168.1.1");
-//        fieldIpFinal.setText("192.168.1.110");
+//        fieldIpFinal.setText("192.168.1.10");
 //        fieldPuertos.setText("1-80");
 //        fieldIpEscan.setText("192.168.1.1");
 
@@ -114,7 +122,6 @@ public class PrimaryController implements Initializable {
             PrimaryController.setDisableEnableBtn();
         } else {
             btnBuscar.setText("SCAN");
-            PrimaryController.setDisableEnableBtn();
         }
         if (tarea != null && tarea.isRunning()) {
             tarea.cancel();
@@ -126,12 +133,6 @@ public class PrimaryController implements Initializable {
                 protected Void call() throws Exception {
                     //Escaneamos la red con los rangos especificados.
                     model.escanearRed(fieldIpInicio.getText(), fieldIpFinal.getText());
-                    if (ipListaCompleta != null) {
-
-                        //Filtramos array de Ipss para ver si usamos todas las ips escaneadas o sólo las vivas antes de iniciar el scan.
-                        mostrarTodoONoAntesDeScan();
-                        insertarTabla(ipListaCompletaFinal);
-                    }
                     return null;
                 }
             };
@@ -159,6 +160,9 @@ public class PrimaryController implements Initializable {
     public static void setDisableEnableBtn() {
 //Deshabilitamos botones, fieldtext a la hora de escanear ips
         if (btnBorrar_static.isDisabled()) {
+            if (btnBuscar_static.getText().equals("SCAN")) {
+                btnBuscar_static.setDisable(false);
+            }
             fieldIpInicio_static.setDisable(false);
             fieldIpFinal_static.setDisable(false);
             fieldIpEscan_static.setDisable(false);
@@ -167,6 +171,9 @@ public class PrimaryController implements Initializable {
             btnScanPort_static.setDisable(false);
             mostrarTodoScan_static.setDisable(false);
         } else {
+            if (btnBuscar_static.getText().equals("SCAN")) {
+                btnBuscar_static.setDisable(true);
+            }
             fieldIpInicio_static.setDisable(true);
             fieldIpFinal_static.setDisable(true);
             fieldIpEscan_static.setDisable(true);
@@ -180,6 +187,7 @@ public class PrimaryController implements Initializable {
     public static void insertarTabla(ArrayList<Ipss> lista) {
 //Recibe un array de Ipss y lo muestra en el tableview.
         Platform.runLater(() -> {
+
             //Creamos un objeto ObservableList de Ipss, este viene por el método setItemsTable, que nos lo envia la clase Modelo.
             observableList_static = FXCollections.observableArrayList(lista);
             resulTable_static.setItems(observableList_static);
@@ -187,62 +195,80 @@ public class PrimaryController implements Initializable {
             TableColumn<Ipss, String> columna0 = new TableColumn<>("ID");
             TableColumn<Ipss, String> columna1 = new TableColumn<>("IPS");
             TableColumn<Ipss, String> columna2 = new TableColumn<>("¿VIVA?");
-            TableColumn<Ipss, Puerto> columna3 = new TableColumn<>("PUERTOS");
+            TableColumn<Ipss, String> columna3 = new TableColumn<>("PUERTOS");
 
             //Se especifica el campo de Ipss que se visualizará en cada columna
             columna0.setCellValueFactory(new PropertyValueFactory("id"));
             columna1.setCellValueFactory(new PropertyValueFactory("ip"));
             columna2.setCellValueFactory(new PropertyValueFactory("viva"));
-            columna3.setCellValueFactory(new PropertyValueFactory("puertos"));
+//            columna3.setCellValueFactory(new PropertyValueFactory("puertos"));
+
+            columna3.setCellValueFactory(cellData -> {
+                List<Puerto> puertosLista = cellData.getValue().getPuertos();
+                String puertosString = "";
+                if (puertosLista != null) {
+                    for (int i = 0; i < puertosLista.size(); i++) {
+                        if (i + 1 == puertosLista.size()) {
+                            puertosString += puertosLista.get(i).getPuerto();
+                        } else {
+                            puertosString += puertosLista.get(i).getPuerto() + " - ";
+                        }
+
+                    }
+                } else {
+                    puertosString = "";
+                }
+
+                return new SimpleStringProperty(puertosString);
+            });
 
             //Se agregan las columnas al cableView.
             resulTable_static.getColumns().setAll(columna0, columna1, columna2, columna3);
-        });
 
-        //Validacion cuando se ejecuta btnBorrar, envia una lista vacia para hacer el reset de la taabla.
-        if (!lista.isEmpty()) {
-            //Por si se pulsa stop scan, para que cuando pare, los botones esten activos.
-            PrimaryController.setDisableEnableBtn();
-        }
+            //Validacion cuando se ejecuta btnBorrar, envia una lista vacia para hacer el reset de la taabla.
+            if (!lista.isEmpty()) {
+                PrimaryController.setDisableEnableBtn();
+            }
+            // mostrarTodoScan_static.setSelected(false);
+        });
 
     }
 
-    public void mostrarTodoONoAntesDeScan() {
-        ipListaCompletaFinal = new ArrayList<>();
-        if (mostrarTodoScan.isSelected()) {
-            ipListaCompletaFinal = ipListaCompleta;
-        } else {
+    public void mostrarTodoONoDespuesDeScan() {
+        //Metodo que nos mostrará una lista u un mensaje, 3 opciones:
+
+        if (!ipListaCompleta.isEmpty()) {
+            //aquí dentro tenemos puertos escaneados en iplistacompleta e iplistacompletafinal
+            //cuando ipListaCompleta tiene contenido.
+            if (mostrarTodoScan_static.isSelected()) {
+                PrimaryController.setDisableEnableBtn();
+                //Segunda opción: Aquí al seleccionar "MOSTRAR TODAS LAS IP" nos mostrará todo.
+                PrimaryController.insertarTabla(ipListaCompleta);
+            } else {
+                PrimaryController.setDisableEnableBtn();
+                //Tercera opcion: Desmarcamos "MOSTRAR TODAS LAS IP" y sólo nos muestra ips vivas.
+                PrimaryController.insertarTabla(ipListaCompletaFinal);
+            }
+        }
+    }
+
+    public static void setItemsTable(ArrayList<Ipss> ipListaCompletaEntrada) {
+//Recibimos una lista de ips escaneadas completa y filtramos para crear la lista ipListaCompletaFinal, que sólo son ip's vivas.
+        //Modelo nos envía el array cono de objetos Ipss, que nos indica las Ip's que están vivas.
+        Platform.runLater(() -> {
+            ipListaCompleta = ipListaCompletaEntrada;
             for (Ipss ip : ipListaCompleta) {
                 if (ip.getViva()) {
                     ipListaCompletaFinal.add(ip);
                 }
             }
-        }
-    }
-
-    public void mostrarTodoONoDespuesDeScan() {
-        //Filtra las ips que ya tenemos en la lista, mostrando todas o sólo vivas.
-
-        if (ipListaCompleta != null) {
-            ipListaCompletaFinal = new ArrayList<>();
-            if (mostrarTodoScan.isSelected()) {
-                ipListaCompletaFinal = ipListaCompleta;
-            } else {
-                for (Ipss ip : ipListaCompleta) {
-                    if (ip.getViva()) {
-                        ipListaCompletaFinal.add(ip);
-                    }
-                }
-            }
-            insertarTabla(ipListaCompletaFinal);
-        }
-    }
-
-    public static void setItemsTable(ArrayList<Ipss> ipListaCompleta) {
-        //Modelo nos envía el array cono de objetos Ipss, que nos indica las Ip's que están vivas.
-        Platform.runLater(() -> {
-            PrimaryController.ipListaCompleta = ipListaCompleta;
             btnBuscar_static.setText("SCAN");
+
+            if (mostrarTodoScan_static.isSelected()) {
+                PrimaryController.insertarTabla(ipListaCompleta);
+            } else {
+                PrimaryController.insertarTabla(ipListaCompletaFinal);
+            }
         });
     }
 
@@ -264,9 +290,20 @@ public class PrimaryController implements Initializable {
     }
 
 //############### FINAL ESCANER DE RED ###############
+//####################################################
+//####################################################
+//####################################################
+//####################################################
+//####################################################
+//####################################################
+//####################################################
+//####################################################
+//####################################################
+//####################################################
+//####################################################
 //############### INICIO ESCANER DE PUERTOS ###############
     public void portScan() {
-        PrimaryController.btnBuscar_static.setDisable(true);
+
         PrimaryController.setDisableEnableBtn();
         String ipEscan = fieldIpEscan.getText();
         String puertos = fieldPuertos.getText();
@@ -330,10 +367,8 @@ public class PrimaryController implements Initializable {
                     ipListaCompletaFinal.add(ip);
                 }
             }
-
+            mostrarTodoScan_static.setSelected(false);
             PrimaryController.insertarTabla(ipListaCompletaFinal);
-            btnBuscar_static.setDisable(false);
-
         });
     }
 
