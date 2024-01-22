@@ -54,7 +54,7 @@
 	        <manifest>
 	            <addClasspath>true</addClasspath>
 	            <classpathPrefix>lib/</classpathPrefix>
-	            <mainClass>com.mycompany.EscannerRedPuertos.Inicializador</mainClass>
+	            <mainClass>com.mycompany.EscannerRedPuertos.Vista.Inicializador</mainClass>
 	        </manifest>
 	    </archive>
 	</configuration>
@@ -73,7 +73,7 @@
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.4</version>
                 <configuration>
-                    <mainClass>com.mycompany.EscannerRedPuertos.App</mainClass>
+                    <mainClass>com.mycompany.EscannerRedPuertos.Vista.Inicializador</mainClass>
                 </configuration>
                 <executions>
                     <execution>

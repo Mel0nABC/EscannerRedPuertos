@@ -10,7 +10,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.geometry.Insets?>
 
-<Pane minHeight="1024.0" minWidth="1280.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.EscannerRedPuertos.PrimaryController">
+<Pane minHeight="1024.0" minWidth="1280.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mycompany.EscannerRedPuertos.Controlador.PrimaryController">
    <children>
       <TableView fx:id="resulTable" layoutX="18.0" layoutY="227.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="783.0" prefWidth="1240.0" />
       <Label fx:id="lblProceso" layoutX="17.0" layoutY="190.0" prefHeight="21.0" prefWidth="518.0" style="-fx-border-color: BLACK;" text="ESTATUS:">

@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Main.java to edit this template
  */
-package com.mycompany.EscannerRedPuertos;
+package com.mycompany.EscannerRedPuertos.Vista;
 
 /**
  *
@@ -16,6 +16,8 @@ public class Inicializador {
     public static void main(String[] args) {
         // TODO code application logic here
             App.main(args);
+            
+            System.out.println("iniciamos aplicacioon @@@@@@@@@@@@@@@@@@@@");
     }
     
 }

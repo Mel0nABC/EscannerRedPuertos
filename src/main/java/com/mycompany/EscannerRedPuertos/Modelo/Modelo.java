@@ -1,9 +1,10 @@
-package com.mycompany.EscannerRedPuertos;
+package com.mycompany.EscannerRedPuertos.Modelo;
 
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
+import com.mycompany.EscannerRedPuertos.Controlador.PrimaryController;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -133,6 +134,7 @@ public class Modelo {
 
                         } else {
                             PrimaryController.setAlarmaError("El rango de la ip inicio es mayor a la ip final.");
+                            PrimaryController.setDisableEnableBtn();
                         }
 
                     }
@@ -142,11 +144,12 @@ public class Modelo {
 
             } else {
                 PrimaryController.setAlarmaError("Algo ocurre con la ip final asignada, vuelva a intentarlo.");
-
+                PrimaryController.setDisableEnableBtn();
             }
 
         } else {
             PrimaryController.setAlarmaError("Algo ocurre con la ip de inicio asignada, vuelva a intentarlo.");
+            PrimaryController.setDisableEnableBtn();
         }
 
     }
@@ -196,7 +199,7 @@ public class Modelo {
 
                         for (int j = 0; j < listaPuertos.size(); j++) {
                             if (j + 1 == listaPuertos.size()) {
-                                puertosAbiertos += listaPuertos.get(j).getPuerto()+".";
+                                puertosAbiertos += listaPuertos.get(j).getPuerto() + ".";
                             } else {
                                 puertosAbiertos += listaPuertos.get(j).getPuerto() + ", ";
                             }
@@ -423,6 +426,7 @@ public class Modelo {
                     arrayPuertos = puertos.split(",");
                     String puertosError = "";
                     boolean multiplesPuertosOk = true;
+                    boolean error = false;
                     for (int i = 0; i < arrayPuertos.length; i++) {
                         if (isNumeric(arrayPuertos[i])) {
                             arrayPuertosInt.add(Integer.parseInt(arrayPuertos[i]));
@@ -431,13 +435,18 @@ public class Modelo {
                             puertosError += arrayPuertos[i] + " - ";
                             multiplesPuertosOk = false;
                             seleccionPuertos = true;
+                            error = true;
                         }
 
                     }
-                    PrimaryController.setAlarmaError("El caràcter '" + puertosError + "' no corresponde a un número, se reinicia la aplicación.");
+                    if(error){
+                    PrimaryController.setAlarmaError("El caràcter " + puertosError + "' no corresponde a un número");                        
+                    }
+
 
                     if (multiplesPuertosOk) {
                         escanerPuertos();
+
                     }
 
                 } else {//else para gestión de rango de puertos.
@@ -447,13 +456,13 @@ public class Modelo {
                     if (isNumeric(arrayPuertos[0])) {
                         puertoInicio = Integer.parseInt(arrayPuertos[0]);
                     } else {
-                        PrimaryController.setAlarmaError("El carácter '" + arrayPuertos[0] + "' no corresponde a un número, se reinicia la aplicación.");
+                        PrimaryController.setAlarmaError("El carácter " + arrayPuertos[0] + "' no corresponde a un número");
                     }
 
                     if (isNumeric(arrayPuertos[1])) {
                         puertoFinal = Integer.parseInt(arrayPuertos[1]);
                     } else {
-                        PrimaryController.setAlarmaError("El carácter '" + arrayPuertos[1] + "' no corresponde a un número, se reinicia la aplicación.");
+                        PrimaryController.setAlarmaError("El carácter " + arrayPuertos[1] + "' no corresponde a un número.");
                     }
                     if (isNumeric(arrayPuertos[0]) && isNumeric(arrayPuertos[1])) {
                         seleccionPuertos = false;
@@ -478,6 +487,7 @@ public class Modelo {
         if (array.size() == 0) {
             PrimaryController.setAlarmaError("No se han localizado ningún puerto abierto.");
             PrimaryController.setEstatus("Puertos detectados abiertos: " + array.size());
+            PrimaryController.setDisableEnableBtn();
         } else {
             for (int i : array) {
                 Puerto puertoTmp = new Puerto(ipEscan, i, true);
@@ -486,6 +496,7 @@ public class Modelo {
             PrimaryController.setPuertos(arrayClasePuerto);
         }
         PrimaryController.setEstatus("Puertos detectados abiertos: " + arrayClasePuerto.size());
+        PrimaryController.setDisableEnableBtn();
     }
 
     public void escanerPuertosRango(int puertoInicio, int puertoFinal) {
@@ -529,6 +540,7 @@ public class Modelo {
         }
         PrimaryController.setEstatus("Puertos detectados abiertos: " + arrayPuertosRango.size());
         PrimaryController.setPuertos(arrayClasePuerto);
+        PrimaryController.setDisableEnableBtn();
     }
 
     public void threadPort(ArrayList<Integer> arrayPuertos) {

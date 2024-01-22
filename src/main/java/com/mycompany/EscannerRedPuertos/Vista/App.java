@@ -1,4 +1,4 @@
-package com.mycompany.EscannerRedPuertos;
+package com.mycompany.EscannerRedPuertos.Vista;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
