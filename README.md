@@ -12,7 +12,7 @@ Escaneo de rango de ips.
 ![imagen](https://github.com/Mel0nABC/EscannerRedPuertos/assets/144219148/63d7792f-d32e-4ce3-9bef-3dfc001ec284)
 
 
-Escaaneo de puertos, del 1 al 444.ç
+Escaaneo de puertos, del 1 al 444.
 
 
 ![imagen](https://github.com/Mel0nABC/EscannerRedPuertos/assets/144219148/37806cf9-b724-4861-b27d-db4c621efac8)
