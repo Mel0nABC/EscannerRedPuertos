@@ -8,7 +8,6 @@ import java.io.IOException;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.control.ProgressBar;
 
-
 /**
  * JavaFX App
  */
@@ -58,5 +57,7 @@ public class App extends Application {
     public static void main(String[] args) {
         launch();
     }
-    
+
+
+
 }

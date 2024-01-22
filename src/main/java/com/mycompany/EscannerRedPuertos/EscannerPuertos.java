@@ -16,35 +16,37 @@ import java.util.ArrayList;
  */
 public class EscannerPuertos implements Runnable {
 
-    private ArrayList<Integer> arrayPuertosAbiertos = new ArrayList<>();
-    private Socket sock;
-    private int puertoUnico;
-    private String ip = "";
+    private static ArrayList<Integer> arrayPuertosAbiertos = new ArrayList<>();
+    private static Socket sock;
+    private static int puertoUnico;
+    private static String ip = "";
 
     public EscannerPuertos() {
+        arrayPuertosAbiertos = new ArrayList<>();
     }
 
     public EscannerPuertos(String ip, int puertoUnico) {
         this.ip = ip;
         this.puertoUnico = puertoUnico;
+        arrayPuertosAbiertos = new ArrayList<>();
     }
 
-    public void getPuerto(String host, int puerto) {
-
+    public static void getPuerto(String host, int puerto) {
+        
         try {
             sock = new Socket();
             sock.connect(new InetSocketAddress(host, puerto), 1000);
 
             if (sock.isConnected()) {
-                System.out.println("Puerto abierto: " + puerto);
+//                System.out.println("Puerto abierto: " + puerto);
                 arrayPuertosAbiertos.add(puerto);
                 puertoUnico = puerto;
-                //Modelo.setPuertoUnico(puertoUnico);
+                Modelo.setPuertoUnico(puertoUnico);
                 sock.close();
             }
 
         } catch (IOException ex) {
-            System.out.println("Puerto cerrado: " + puerto);
+//            System.out.println("Puerto cerrado: " + puerto);
         }
     }
 

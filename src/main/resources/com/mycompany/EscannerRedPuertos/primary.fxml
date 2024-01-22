@@ -93,11 +93,23 @@
                         </Button>
                      </children>
                   </VBox>
-                  <TextArea editable="false" prefHeight="164.0" prefWidth="376.0" text="Seleccione una IP de la lista o escriba una manualmente.&#10;&#10;¿Como indicar los puertos a escanear?&#10;&#10;Ejemplo individual: 2000&#10;Ejemplo concretos: 2000,2001,8080 ...&#10;Ejemplo rango: 2000-2010">
+                  <TextArea fx:id="instrucciones" editable="false" prefHeight="164.0" prefWidth="376.0">
                      <HBox.margin>
                         <Insets left="10.0" />
                      </HBox.margin>
                   </TextArea>
+                  <VBox>
+                     <children>
+                        <Button fx:id="btnGuardar" mnemonicParsing="false" onAction="#btnGuardar" text="GUARDAR">
+                           <VBox.margin>
+                              <Insets bottom="5.0" left="15.0" right="5.0" />
+                           </VBox.margin>
+                        </Button>
+                     </children>
+                     <HBox.margin>
+                        <Insets />
+                     </HBox.margin>
+                  </VBox>
                </children>
             </HBox>
          </children>

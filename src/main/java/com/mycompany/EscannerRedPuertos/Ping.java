@@ -14,17 +14,19 @@ import java.net.UnknownHostException;
  */
 public class Ping implements Runnable {
 
+    private int idIpps;
     private String ip;
     private static boolean resultado;
     private boolean ping;
-    private final int TIMEOUTPING = 1500;
+    private final int TIMEOUTPING = 2000;
 
-    public Ping(String ip) {
+    public Ping(String ip, int idIpps) {
         this.ip = ip;
+        this.idIpps = idIpps;
     }
 
     public void ping() {
-        System.out.println(ip);
+        //System.out.println(ip);
         String hostName = "";
         try {
             InetAddress address = InetAddress.getByName(ip);
@@ -44,6 +46,7 @@ public class Ping implements Runnable {
             ex.printStackTrace();
         }
         Ipss ipsTmp = new Ipss(ip, resultado);
+        ipsTmp.setId(idIpps);
         Modelo.setResultado(ipsTmp);
     }
     

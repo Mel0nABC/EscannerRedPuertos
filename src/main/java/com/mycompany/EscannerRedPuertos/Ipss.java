@@ -4,6 +4,8 @@
  */
 package com.mycompany.EscannerRedPuertos;
 
+import java.util.ArrayList;
+
 /**
  *
  * @author alex
@@ -11,8 +13,9 @@ package com.mycompany.EscannerRedPuertos;
 public class Ipss {
 
     private int id;
-    public String ip;
-    public boolean viva;
+    private String ip;
+    private boolean viva;
+    private ArrayList<Puerto> puertos;
 
     public Ipss(String ip) {
         this.ip = ip;
@@ -53,9 +56,13 @@ public class Ipss {
     public void setId(int id) {
         this.id = id;
     }
-    
-    
-    
-    
+
+    public ArrayList<Puerto> getPuertos() {
+        return puertos;
+    }
+
+    public void setPuertos(ArrayList<Puerto> puertos) {
+        this.puertos = puertos;
+    }
 
 }
