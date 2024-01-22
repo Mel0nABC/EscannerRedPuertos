@@ -44,6 +44,7 @@ Requisitos: Java Virtual Machine y Maven.
 - Descomprimir si fuera necesario.
 - Entrar en el directorio.
 - compilar con "mvn clean install".
+- Entrar en el directorio target.
 - ejecutar "java -jar EscannerRedPuertos-1.0-SNAPSHOT.jar"
 
 - 
