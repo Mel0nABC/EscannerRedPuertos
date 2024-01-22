@@ -86,11 +86,13 @@ public class PrimaryController implements Initializable {
                 + "Ejemplo individual: 2000\n"
                 + "Ejemplo concretos: 2000,2001,8080 ...\n"
                 + "Ejemplo rango: 2000-2010";
-        instrucciones.setText(textoInformativo);
-        fieldIpInicio.setText("192.168.1.1");
-        fieldIpFinal.setText("192.168.1.110");
-        fieldPuertos.setText("1-80");
-        fieldIpEscan.setText("192.168.1.1");
+        
+        //Zona para hacer pruebas rápidas.
+//        instrucciones.setText(textoInformativo);
+//        fieldIpInicio.setText("192.168.1.1");
+//        fieldIpFinal.setText("192.168.1.110");
+//        fieldPuertos.setText("1-80");
+//        fieldIpEscan.setText("192.168.1.1");
 
 //Para seleccionar la ip de la lista de ips escaneadas y colocarla en su tableField, fieldIpEscan
         resulTable.setOnMouseClicked(event -> {
