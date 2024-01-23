@@ -34,3 +34,17 @@ Opciones de guardado de logs, ubicación donde se encuentre la aplicación.
 Los archivos se guardan en formato *.log, pero se puede visualizar en cualquier editor de texto.
 
 ![imagen](https://github.com/Mel0nABC/EscannerRedPuertos/assets/144219148/5bd46a6c-942a-4f4b-a90f-47f29366ebc6)
+
+
+INSTALACIÓN.
+
+Requisitos: Java Virtual Machine y Maven.
+
+- Descargara los archivos ya sea con git clone o el zip.
+- Descomprimir si fuera necesario.
+- Entrar en el directorio.
+- compilar con "mvn clean install".
+- Entrar en el directorio target.
+- ejecutar "java -jar EscannerRedPuertos-1.0-SNAPSHOT.jar"
+
+- 
