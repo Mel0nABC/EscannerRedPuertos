@@ -27,7 +27,7 @@ public class Ping implements Runnable {
     }
 
     public void ping() {
-        //System.out.println(ip);
+//        System.out.println(ip);
         String hostName = "";
         try {
             InetAddress address = InetAddress.getByName(ip);

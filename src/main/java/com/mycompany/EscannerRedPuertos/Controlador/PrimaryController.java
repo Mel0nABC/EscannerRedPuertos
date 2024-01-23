@@ -192,7 +192,8 @@ public class PrimaryController implements Initializable {
     public static void insertarTabla(ArrayList<Ipss> lista) {
 //Recibe un array de Ipss y lo muestra en el tableview.
         Platform.runLater(() -> {
-
+                System.out.println("test: "+lista.size());
+                
             //Creamos un objeto ObservableList de Ipss, este viene por el método setItemsTable, que nos lo envia la clase Modelo.
             observableList_static = FXCollections.observableArrayList(lista);
             resulTable_static.setItems(observableList_static);
@@ -232,6 +233,7 @@ public class PrimaryController implements Initializable {
 
             //Validacion cuando se ejecuta btnBorrar, envia una lista vacia para hacer el reset de la taabla.
             if (!lista.isEmpty()) {
+System.out.println("no empty");
                 PrimaryController.setDisableEnableBtn();
             }
         });
@@ -257,6 +259,7 @@ public class PrimaryController implements Initializable {
     }
     
     public static void setItemsTable(ArrayList<Ipss> ipListaCompletaEntrada) {
+        System.out.println("SET ITEMS: "+ipListaCompletaEntrada.size());
 //Recibimos una lista de ips escaneadas completa y filtramos para crear la lista ipListaCompletaFinal, que sólo son ip's vivas.
         //Modelo nos envía el array cono de objetos Ipss, que nos indica las Ip's que están vivas.
         Platform.runLater(() -> {
@@ -266,12 +269,16 @@ public class PrimaryController implements Initializable {
                     ipListaCompletaFinal.add(ip);
                 }
             }
+            
             btnBuscar_static.setText("SCAN");
             
             if (mostrarTodoScan_static.isSelected()) {
                 PrimaryController.insertarTabla(ipListaCompleta);
             } else {
                 PrimaryController.insertarTabla(ipListaCompletaFinal);
+                if(ipListaCompletaFinal.isEmpty()){
+                    PrimaryController.setDisableEnableBtn();
+                }
             }
         });
     }

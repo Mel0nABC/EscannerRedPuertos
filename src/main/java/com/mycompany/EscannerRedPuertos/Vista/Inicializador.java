@@ -16,8 +16,6 @@ public class Inicializador {
     public static void main(String[] args) {
         // TODO code application logic here
             App.main(args);
-            
-            System.out.println("iniciamos aplicacioon @@@@@@@@@@@@@@@@@@@@");
     }
     
 }
