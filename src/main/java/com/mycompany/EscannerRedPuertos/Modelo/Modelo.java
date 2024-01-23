@@ -85,8 +85,6 @@ public class Modelo {
 
             arrayIpFinal = ipFinal.split("\\.");
 
-            boolean testRangos = true;
-
             if (arrayIpFinal.length == 4) {
 
                 boolean sonSoloNumeros = true;
@@ -134,7 +132,6 @@ public class Modelo {
 
                         } else {
                             PrimaryController.setAlarmaError("El rango de la ip inicio es mayor a la ip final.");
-                            PrimaryController.setDisableEnableBtn();
                         }
 
                     }
@@ -144,12 +141,10 @@ public class Modelo {
 
             } else {
                 PrimaryController.setAlarmaError("Algo ocurre con la ip final asignada, vuelva a intentarlo.");
-                PrimaryController.setDisableEnableBtn();
             }
 
         } else {
             PrimaryController.setAlarmaError("Algo ocurre con la ip de inicio asignada, vuelva a intentarlo.");
-            PrimaryController.setDisableEnableBtn();
         }
 
     }
@@ -487,7 +482,6 @@ public class Modelo {
         if (array.size() == 0) {
             PrimaryController.setAlarmaError("No se han localizado ningún puerto abierto.");
             PrimaryController.setEstatus("Puertos detectados abiertos: " + array.size());
-            PrimaryController.setDisableEnableBtn();
         } else {
             for (int i : array) {
                 Puerto puertoTmp = new Puerto(ipEscan, i, true);
@@ -496,7 +490,6 @@ public class Modelo {
             PrimaryController.setPuertos(arrayClasePuerto);
         }
         PrimaryController.setEstatus("Puertos detectados abiertos: " + arrayClasePuerto.size());
-        PrimaryController.setDisableEnableBtn();
     }
 
     public void escanerPuertosRango(int puertoInicio, int puertoFinal) {
@@ -540,7 +533,6 @@ public class Modelo {
         }
         PrimaryController.setEstatus("Puertos detectados abiertos: " + arrayPuertosRango.size());
         PrimaryController.setPuertos(arrayClasePuerto);
-        PrimaryController.setDisableEnableBtn();
     }
 
     public void threadPort(ArrayList<Integer> arrayPuertos) {
