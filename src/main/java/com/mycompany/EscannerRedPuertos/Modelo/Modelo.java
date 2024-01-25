@@ -113,16 +113,23 @@ public class Modelo {
     }
 
     public void threadPing(ArrayList<String> ips) {
-        System.out.println("TEST VARIOS THREADS");
         //Generaamos Threads de la lista de ips que entra.
+        String ipString = "";
         if (stopNuevoThread) {
 
             for (String ip : ips) {
                 try {
+                    ipString = ip;
                     Ping ping = new Ping(ip, contadorIds);
                     Thread t = new Thread(grupoDeThreads, ping);
                     t.setName(ip);
                     t.start();
+                    if (!stopNuevoThread) {
+                        PrimaryController.setEstatus("ESTATUS: Cancelando....");
+                    } else {
+                        PrimaryController.setEstatus("Escaneando ip: " + ipString);
+                    }
+
                     listaThreadsPing.add(t);
 //                    Se añade pequeño delay, porque si no se perdian ip's escaneadas, 
 //                    no llegaban a salir en el array final.
@@ -144,13 +151,14 @@ public class Modelo {
                     }
                 }
             }
+        } else {
+            PrimaryController.setEstatus("ESTATUS: Cancelado");
         }
     }
 
     public void stopThreadsPing() {
         //Método para parar la generación de threadPing
         stopNuevoThread = false;
-        PrimaryController.setEstatus("ESTATUS: Cancelando ....");
     }
 
     public static void setResultado(Ipss ipss) {
@@ -356,20 +364,18 @@ public class Modelo {
         int contador = 0;
 
         for (int i = puertoInicio; i <= puertoFinal; i++) {
-                System.out.println("Puertos: "+i);
-                if (contador == THREADS_SIZE_PUERTOS | i == puertoFinal) {
-                    System.out.println("contador: "+contador);
-                    threadPort(arrayPuertos);
-                    contador = 0;
-                    arrayPuertos = new ArrayList<>();
-                    arrayPuertos.add(i);
-                } else {
-                    arrayPuertos.add(i);
-                }
-                if (i == puertoFinal) {
-                    threadPort(arrayPuertos);
-                }
-                contador++;
+            if (contador == THREADS_SIZE_PUERTOS | i == puertoFinal) {
+                threadPort(arrayPuertos);
+                contador = 0;
+                arrayPuertos = new ArrayList<>();
+                arrayPuertos.add(i);
+            } else {
+                arrayPuertos.add(i);
+            }
+            if (i == puertoFinal) {
+                threadPort(arrayPuertos);
+            }
+            contador++;
         }
 
         if (arrayPuertos.size() != 0) {
@@ -393,7 +399,7 @@ public class Modelo {
                 EscannerPuertos escaner = new EscannerPuertos(ipEscan, arrayPuertos.get(i));
                 PrimaryController.setEstatus("Escaneando puerto: " + arrayPuertos.get(i));
                 t = new Thread(escaner);
-//                escaner.setT(t);
+
                 t.setName("escaner" + arrayPuertos.get(i));
                 t.start();
                 listaThreadsPorts.add(t);
@@ -410,7 +416,6 @@ public class Modelo {
                 if (t.isAlive()) {
                     t.interrupt();
                     permisoEnvioPuertos = true;
-                    System.out.println("THREAS: "+t.getName());
                 }
             }
         }

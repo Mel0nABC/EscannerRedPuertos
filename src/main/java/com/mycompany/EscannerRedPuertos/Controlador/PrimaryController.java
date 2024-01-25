@@ -109,10 +109,10 @@ public class PrimaryController implements Initializable {
 
          */
         //Zona para hacer pruebas rápidas.
-//        fieldIpInicio.setText("192.168.1.1");
-//        fieldIpFinal.setText("192.168.1.10");
-//        fieldPuertos.setText("1-80");
-//        fieldIpEscan.setText("192.168.1.1");
+        fieldIpInicio.setText("192.168.1.1");
+        fieldIpFinal.setText("192.168.1.10");
+        fieldPuertos.setText("1-80");
+        fieldIpEscan.setText("192.168.1.1");
 //Para seleccionar la ip de la lista de ips escaneadas y colocarla en su tableField, fieldIpEscan
         resulTable.setOnMouseClicked(event -> {
             String ipSeleccionada = resulTable.getSelectionModel().getSelectedItem().getIp();
