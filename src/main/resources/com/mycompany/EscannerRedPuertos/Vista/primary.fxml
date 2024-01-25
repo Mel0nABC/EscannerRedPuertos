@@ -57,7 +57,7 @@
                               <Button fx:id="btnBorrar" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#btnBorrar" prefWidth="70.0" text="BORRAR" />
                            </children>
                         </HBox>
-                        <CheckBox fx:id="mostrarTodoScan" mnemonicParsing="false" onMouseClicked="#mostrarTodoONoDespuesDeScan" prefHeight="19.0" prefWidth="263.0" text="MOSTRAR TODAS LAS IP ESCANEADAS">
+                        <CheckBox fx:id="mostrarTodoScan" mnemonicParsing="false" onAction="#mostrarTodoONoDespuesDeScan" prefHeight="19.0" prefWidth="263.0" text="MOSTRAR TODAS LAS IP ESCANEADAS">
                            <VBox.margin>
                               <Insets top="15.0" />
                            </VBox.margin>

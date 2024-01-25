@@ -4,6 +4,7 @@ import com.mycompany.EscannerRedPuertos.Modelo.Ipss;
 import com.mycompany.EscannerRedPuertos.Modelo.Modelo;
 import com.mycompany.EscannerRedPuertos.Modelo.Puerto;
 import java.net.URL;
+import java.text.BreakIterator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -59,9 +60,18 @@ public class PrimaryController implements Initializable {
     //Esta variable es para usarla de filtro si el checkbox está o no marcado.
     private static ArrayList<Ipss> ipListaCompletaFinal;
 
+    //Ejecución de threads para scanIps y scanpuertos.
     private Task tarea;
     private static Thread hiloEscaner;
     private Modelo model;
+
+    //Array para a trabajar con las validaciones de ip.
+    private String[] arrayIpTest;
+
+    //CONSTANTE para establecer el tamaño máximo de rango, se usa 255 obviando el 254 de la red
+    //Esto se debe porque se usa para todos los valores de rango, 8/16/24 y 32 bits.
+    private final int RANGOMAX = 255;
+    private final int RANGOMIN = 0;
 
     public void initialize(URL location, ResourceBundle arg1) {
         lblProceso_static = lblProceso;
@@ -116,7 +126,7 @@ public class PrimaryController implements Initializable {
                     }
                 }
                 if (!localizada) {
-                    setAlarmaError("La ip "+ipSeleccionada+" no tendrá puertos abiertos por no estar viva.");
+                    setAlarmaError("La ip " + ipSeleccionada + " no tendrá puertos abiertos por no estar viva.");
                 }
                 //Final aviso que la ip no dará resultados en puertos abiertos por no estar viva
             }
@@ -125,34 +135,117 @@ public class PrimaryController implements Initializable {
 //############### INICIO ESCANER DE RED ###############
 
     public void btnBuscar() {
-        ipListaCompleta = new ArrayList<>();
-        ipListaCompletaFinal = new ArrayList<>();
 
         if (btnBuscar.getText().equals("SCAN")) {
             btnBuscar.setText("STOP");
+            inicioEscannerIp();
         } else {
             btnBuscar.setText("SCAN");
-        }
-        if (tarea != null && tarea.isRunning()) {
             tarea.cancel();
             hiloEscaner.interrupt();
             model.stopThreadsPing();
-        } else {
-            tarea = new Task<Void>() {
-                @Override
-                protected Void call() throws Exception {
-                    //Escaneamos la red con los rangos especificados.
-                    model.escanearRed(fieldIpInicio.getText(), fieldIpFinal.getText());
-                    return null;
-                }
-            };
-            hiloEscaner = new Thread(tarea);
-            hiloEscaner.setDaemon(true);
-            hiloEscaner.setName("escanerThread");
-            hiloEscaner.start();
         }
-        //Deshabilitamos botones al inicio de scan ip's
+
+    }
+
+    public void inicioEscannerIp() {
+
+        String ipInicio = fieldIpInicio.getText();
+        String ipFinal = fieldIpFinal.getText();
+
+        //Validaciones para comprobar que las ip's sean correctas, tanto en tipo de dato como en estructura ipv4.
+        if (!testIp(ipInicio, "inicio")) {
+            return;
+        }
+
+        if (!testIp(ipFinal, "final")) {
+            return;
+        }
+
+        if (!testeaRangosIp(ipInicio, "inicio")) {
+            return;
+        }
+
+        if (!testeaRangosIp(ipFinal, "final")) {
+            return;
+        }
+
+        ipListaCompleta = new ArrayList<>();
+        ipListaCompletaFinal = new ArrayList<>();
+
+        tarea = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                String[] arrayIpInicioString = ipInicio.split("\\.");
+                //Escaneamos la red con los rangos especificados.
+                model.inicioScannerIp(arrayIpInicioString, ipFinal);
+                return null;
+            }
+        };
+        hiloEscaner = new Thread(tarea);
+        hiloEscaner.setDaemon(true);
+        hiloEscaner.setName("escanerThread");
+        hiloEscaner.start();
         setDisableEnableBtn();
+        btnBuscar_static.setDisable(false);
+
+    }
+
+    public boolean testIp(String ipString, String tipoIp) {
+
+        boolean respuesta = true;
+        arrayIpTest = ipString.split("\\.");
+
+        if (ipString.equals("") | ipString.isEmpty() | arrayIpTest.length != 4) {
+            setAlarmaError("Algo ocurre con la ip de " + tipoIp + " asignada, vuelva a intentarlo.");
+            return respuesta = false;
+        }
+
+        boolean stopoFor = true;
+        for (int i = 0; i < arrayIpTest.length; i++) {
+            if (!isNumeric(arrayIpTest[i]) | arrayIpTest[i].length() > 3 | arrayIpTest[i].length() < 1) {
+                setAlarmaError("En la ip " + tipoIp + ", ha introducido un valor que no es un número o el número es erróneo.");
+                stopoFor = false;
+                break;
+            }
+        }
+
+        if (!stopoFor) {
+            respuesta = false;
+        }
+
+        return respuesta;
+    }
+
+    public boolean isNumeric(String str) {
+        try {
+            Integer.parseInt(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    public boolean testeaRangosIp(String ipString, String tipoIp) {
+        //Variables temporales para generar ipIn_X e ipFi_X
+        String[] arrayIp = ipString.split("\\.");
+        int[] arrayInt = new int[4];
+        boolean respuesta = true;
+        String msgAlarma = "Algún rango de ip de " + tipoIp + " es mayor a " + RANGOMAX + " o menor a " + RANGOMIN + ".";
+        if (tipoIp.equals("final")) {
+            msgAlarma = "Algún rango de ip de " + tipoIp + " es mayor a " + RANGOMAX + " o menor a " + RANGOMIN + ".";
+        }
+
+        //Pasamos el array de Strings a enteros de la ipInicial e ipFinal.
+        for (int i = 0; i < arrayIp.length; i++) {
+            int rangoTest = Integer.parseInt(arrayIp[i]);
+            if (rangoTest > RANGOMAX | rangoTest < RANGOMIN) {
+                setAlarmaError(msgAlarma);
+                respuesta = false;
+                break;
+            }
+        }
+        return respuesta;
     }
 
     public void btnBorrar() {
@@ -208,6 +301,7 @@ public class PrimaryController implements Initializable {
     public static void insertarTabla(ArrayList<Ipss> lista) {
 //Recibe un array de Ipss y lo muestra en el tableview.
         Platform.runLater(() -> {
+
             //Creamos un objeto ObservableList de Ipss, este viene por el método setItemsTable, que nos lo envia la clase Modelo.
             observableList_static = FXCollections.observableArrayList(lista);
             resulTable_static.setItems(observableList_static);
@@ -236,7 +330,7 @@ public class PrimaryController implements Initializable {
 
                     }
                 } else {
-                    puertosString = "";
+                    puertosString = "Puertos no disponibles.";
                 }
 
                 return new SimpleStringProperty(puertosString);
@@ -249,16 +343,16 @@ public class PrimaryController implements Initializable {
     }
 
     public void mostrarTodoONoDespuesDeScan() {
-        //Metodo que nos mostrará una lista u un mensaje, 3 opciones:
+        //Metodo que nos mostrará ipListaCompleta u ipListaCompletaFinal, dependiendo si el checkbox está o no seleccionado.
         if (!ipListaCompleta.isEmpty()) {
             //aquí dentro tenemos puertos escaneados en iplistacompleta e iplistacompletafinal
             //cuando ipListaCompleta tiene contenido.
             if (mostrarTodoScan_static.isSelected()) {
                 //Segunda opción: Aquí al seleccionar "MOSTRAR TODAS LAS IP" nos mostrará todo.
-                PrimaryController.insertarTabla(ipListaCompleta);
+                insertarTabla(ipListaCompleta);
             } else {
                 //Tercera opcion: Desmarcamos "MOSTRAR TODAS LAS IP" y sólo nos muestra ips vivas.
-                PrimaryController.insertarTabla(ipListaCompletaFinal);
+                insertarTabla(ipListaCompletaFinal);
             }
         }
     }
@@ -273,17 +367,15 @@ public class PrimaryController implements Initializable {
                     ipListaCompletaFinal.add(ip);
                 }
             }
-
             btnBuscar_static.setText("SCAN");
 
             if (mostrarTodoScan_static.isSelected()) {
-                PrimaryController.insertarTabla(ipListaCompleta);
+                insertarTabla(ipListaCompleta);
             } else {
-                PrimaryController.insertarTabla(ipListaCompletaFinal);
+                insertarTabla(ipListaCompletaFinal);
             }
+            setDisableEnableBtn();
         });
-        //Volvemos a haabitar botones por finalización de scanip.
-        setDisableEnableBtn();
     }
 
     public static void setAlarmaError(String msg) {
@@ -303,65 +395,82 @@ public class PrimaryController implements Initializable {
         });
     }
 
-//############### FINAL ESCANER DE RED ###############
-//####################################################
-//####################################################
-//####################################################
-//####################################################
-//####################################################
-//####################################################
-//####################################################
-//####################################################
-//####################################################
-//####################################################
-//####################################################
-//############### INICIO ESCANER DE PUERTOS ###############
+    //############### FINAL ESCANER DE RED ###############
+    //####################################################
+    //####################################################
+    //####################################################
+    //####################################################
+    //####################################################
+    //####################################################
+    //####################################################
+    //####################################################
+    //####################################################
+    //####################################################
+    //####################################################
+    //############### INICIO ESCANER DE PUERTOS ###############
     public void portScan() {
 
         String ipEscan = fieldIpEscan.getText();
         String puertos = fieldPuertos.getText();
-        if (ipEscan.equals("")) {
-            PrimaryController.setAlarmaError("Debe seleccionar o introducir una ip manualmente.");
-        } else if (puertos.equals("")) {
-            PrimaryController.setAlarmaError("No ha especificado puertos a escanear.");
-        } else {
-            tarea = new Task<Void>() {
-                @Override
-                protected Void call() throws Exception {
-                    //Escaneamos la red con los rangos especificados.
-                    model.portEscaner(ipEscan, puertos);
-                    return null;
-                }
-            };
-            hiloEscaner = new Thread(tarea);
-            hiloEscaner.setDaemon(true);
-            hiloEscaner.setName("puertosThread");
-            hiloEscaner.start();
+
+        if (!testIp(ipEscan, "puertos")) {
+            return;
         }
+
+        if (!testeaRangosIp(ipEscan, "puertos")) {
+            return;
+        }
+
+        tarea = new Task<Void>() {
+            @Override
+            protected Void call() throws Exception {
+                //Escaneamos la red con los rangos especificados.
+                model.portEscaner(ipEscan, puertos);
+                return null;
+            }
+        };
+        hiloEscaner = new Thread(tarea);
+        hiloEscaner.setDaemon(true);
+        hiloEscaner.setName("puertosThread");
+        hiloEscaner.start();
+
+        setDisableEnableBtn();
+
+    }
+    
+    
+    public static void setPuertosEnBlanco(){
+        //Este método se ejecuta en Modelo, se han introducido clausulas guarda y, debo reactivar
+        //los botones de operación de la aplicación. Ejemplo de la línea 
         setDisableEnableBtn();
     }
 
     public static void setPuertos(ArrayList<Puerto> listaPuertos) {
 
-        //Modelo nos envía el array cono de objetos Ipss, que nos indica las Ip's que están vivas.
+        //Modelo nos envía el array de objetos tipo Puerto, aquí buscamos si la ip de Puerto coincide con lo que tenemos en ipListaCompleta e actualizamos
+        //el objeto Ipss de iplistacompleta añadiéndole el objeto Puerto.
         Platform.runLater(() -> {
-
+            setDisableEnableBtn();
             if (ipListaCompleta.isEmpty()) {
                 for (Puerto p : listaPuertos) {
                     Ipss tmp = new Ipss(1, p.getIp(), p.getAbierto());
                     tmp.setPuertos(listaPuertos);
                     ipListaCompleta.add(tmp);
+                    System.out.println("INICIOO: " + listaPuertos.size());
                     break;
                 }
 
             } else {
 
-                for (Ipss ipss : ipListaCompleta) {
-                    if (!listaPuertos.isEmpty()) {
+                //condicionar para gestión de listaPuertos == null. Evitamos excepciones.
+                if (!listaPuertos.isEmpty()) {
+                    for (Ipss ipss : ipListaCompleta) {
                         if (ipss.getIp().equals(listaPuertos.get(0).getIp())) {
                             ArrayList<Puerto> tmp = new ArrayList<>();
                             ipss.setPuertos(tmp);
+                            System.out.println("TMP: " + ipss.getPuertos().size());
                             ipss.setPuertos(listaPuertos);
+                            System.out.println("FINAL: " + ipss.getPuertos().size());
                         }
                     }
                 }
@@ -373,11 +482,15 @@ public class PrimaryController implements Initializable {
                     ipListaCompletaFinal.add(ip);
                 }
             }
+            if (listaPuertos.isEmpty()) {
+                setAlarmaError("No se han localizado ningún puerto abierto.");
+            }
+            setEstatus("Puertos detectados abiertos: " + listaPuertos.size());
+
             mostrarTodoScan_static.setSelected(false);
             PrimaryController.insertarTabla(ipListaCompletaFinal);
         });
         //Habilitamos botones al finalizar scan de puertos.
-        setDisableEnableBtn();
     }
 
 //############### FINAL ESCANER DE PUERTOS ###############

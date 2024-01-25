@@ -10,4 +10,5 @@ module com.mycompany.EscannerRedPuertos {
     
     opens com.mycompany.EscannerRedPuertos.Controlador to javafx.fxml;
     exports com.mycompany.EscannerRedPuertos.Controlador;
+    requires javafx.base;
 }

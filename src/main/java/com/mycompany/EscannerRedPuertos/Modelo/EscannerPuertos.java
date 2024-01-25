@@ -49,6 +49,7 @@ public class EscannerPuertos implements Runnable {
         } catch (IOException ex) {
 //            System.out.println("Puerto cerrado: " + puerto);
         }
+
     }
 
     public ArrayList<Integer> getArray() {
@@ -64,3 +65,4 @@ public class EscannerPuertos implements Runnable {
         getPuerto(ip, puertoUnico);
     }
 }
+    

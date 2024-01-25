@@ -27,12 +27,11 @@ public class Ping implements Runnable {
     }
 
     public void ping() {
-//        System.out.println(ip);
         String hostName = "";
         try {
             InetAddress address = InetAddress.getByName(ip);
             try {
-                
+//                System.out.println("PING: "+ip);
                 resultado = address.isReachable(TIMEOUTPING);
                 
                 //Para asignar el host de una ip viva.
