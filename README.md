@@ -38,7 +38,7 @@ Los archivos se guardan en formato *.log, pero se puede visualizar en cualquier 
 
 INSTALACIÓN.
 
-Requisitos: Java Virtual Machine y Maven.
+Requisitos: Java Virtual Machine, java FX y Maven.
 
 - Descargara los archivos ya sea con git clone o el zip.
 - Descomprimir si fuera necesario.
@@ -47,4 +47,3 @@ Requisitos: Java Virtual Machine y Maven.
 - Entrar en el directorio target.
 - ejecutar "java -jar EscannerRedPuertos-1.0-SNAPSHOT.jar"
 
-- 
