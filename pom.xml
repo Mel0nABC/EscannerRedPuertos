@@ -13,7 +13,12 @@
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
-            <version>13</version>
+            <version>13.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>13.0.2</version>
         </dependency>
     </dependencies>
     <build>
@@ -21,7 +26,6 @@
 
     <!-- Copia las dependencias librerias javafx .jar a la carpeta "lib" de tu proyecto -->
     <plugin>
-
 	<groupId>org.apache.maven.plugins</groupId>
 	<artifactId>maven-dependency-plugin</artifactId>
 	<configuration>
@@ -113,5 +117,4 @@
             </plugin>
         </plugins>
     </build>
-    <name>EscannerRedPuertos</name>
 </project>
